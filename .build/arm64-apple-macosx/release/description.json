@@ -3,7 +3,34 @@
 
   ],
   "copyCommands" : {
-
+    "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar_ClaudeUsageBar.bundle/icon_app.png" : {
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/icon_app.png"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar_ClaudeUsageBar.bundle/icon_app.png"
+        }
+      ]
+    },
+    "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar_ClaudeUsageBar.bundle/icon_status_bar.png" : {
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/icon_status_bar.png"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar_ClaudeUsageBar.bundle/icon_status_bar.png"
+        }
+      ]
+    }
   },
   "explicitTargetDependencyImportCheckingMode" : {
     "none" : {
@@ -52,7 +79,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/UI/LiquidGlassModifier.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/DerivedSources/resource_bundle_accessor.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<ClaudeUsageBar-arm64-apple-macosx26.0-release.module-resources>"
         },
         {
           "kind" : "file",
@@ -69,7 +108,9 @@
         "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/UsageModel.swift.o",
         "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/MenuBarView.swift.o",
         "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/PrometheusPoller.swift.o",
-        "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/OAuthUsageFetcher.swift.o"
+        "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/OAuthUsageFetcher.swift.o",
+        "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/LiquidGlassModifier.swift.o",
+        "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/resource_bundle_accessor.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -81,7 +122,7 @@
         "-O",
         "-j12",
         "-DSWIFT_PACKAGE",
-        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
         "-module-cache-path",
         "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ModuleCache",
         "-parseable-output",
@@ -89,7 +130,6 @@
         "-entry-point-function-name",
         "-Xfrontend",
         "ClaudeUsageBar_main",
-        "-color-diagnostics",
         "-swift-version",
         "5",
         "-parse-as-library",
@@ -157,6 +197,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/LiquidGlassModifier.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/resource_bundle_accessor.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/Modules/ClaudeUsageBar.swiftmodule"
         }
       ],
@@ -168,7 +216,9 @@
         "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Core/UsageModel.swift",
         "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/MenuBar/MenuBarView.swift",
         "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/OTel/PrometheusPoller.swift",
-        "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/ProUsage/OAuthUsageFetcher.swift"
+        "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/ProUsage/OAuthUsageFetcher.swift",
+        "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/UI/LiquidGlassModifier.swift",
+        "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/DerivedSources/resource_bundle_accessor.swift"
       ],
       "tempsPath" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build",
       "wholeModuleOptimization" : true
@@ -192,6 +242,8 @@
       "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/MenuBar/MenuBarView.swift",
       "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/OTel/PrometheusPoller.swift",
       "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/ProUsage/OAuthUsageFetcher.swift",
+      "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/UI/LiquidGlassModifier.swift",
+      "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/DerivedSources/resource_bundle_accessor.swift",
       "-I",
       "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/Modules",
       "-target",
@@ -203,7 +255,7 @@
       "-O",
       "-j12",
       "-DSWIFT_PACKAGE",
-      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
       "-module-cache-path",
       "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ModuleCache",
       "-parseable-output",
@@ -211,7 +263,6 @@
       "-entry-point-function-name",
       "-Xfrontend",
       "ClaudeUsageBar_main",
-      "-color-diagnostics",
       "-swift-version",
       "5",
       "-parse-as-library",
@@ -301,6 +352,14 @@
         {
           "kind" : "file",
           "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/ProUsage/OAuthUsageFetcher.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/Sources/UI/LiquidGlassModifier.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/DerivedSources/resource_bundle_accessor.swift"
         }
       ],
       "outputFilePath" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/sources"
@@ -322,6 +381,10 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/LiquidGlassModifier.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/MenuBarView.swift.o"
         },
         {
@@ -339,6 +402,10 @@
         {
           "kind" : "file",
           "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/UsageModel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/resource_bundle_accessor.swift.o"
         }
       ],
       "outputFilePath" : "/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.product/Objects.LinkFileList"

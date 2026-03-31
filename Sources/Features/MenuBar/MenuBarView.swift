@@ -3,6 +3,7 @@ import SwiftUI
 /// 메뉴바 팝오버 메인 뷰.
 ///
 /// Pro 5시간 윈도우, 주간 캡, 모델별 한도, Claude Code OTel 메트릭을 표시한다.
+/// macOS 26+에서는 각 섹션이 Liquid Glass 카드로 렌더링된다.
 struct MenuBarView: View {
 
     @Environment(AppState.self) private var state
@@ -11,25 +12,22 @@ struct MenuBarView: View {
     @State private var tickCount = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            headerRow
-            Divider().padding(.vertical, 8)
-            proUsageSection
+        VStack(alignment: .leading, spacing: 8) {
+            headerCard
+            proUsageCard
             if state.isOTelAvailable, let metrics = state.codeMetrics {
-                Divider().padding(.vertical, 8)
-                codeMetricsSection(metrics)
+                codeMetricsCard(metrics)
             }
-            Divider().padding(.vertical, 8)
-            footerRow
+            footerCard
         }
-        .padding(14)
+        .padding(12)
         .frame(width: 290)
         .onReceive(ticker) { _ in tickCount += 1 } // 뷰 재계산 트리거
     }
 
-    // MARK: - 헤더
+    // MARK: - 헤더 카드
 
-    private var headerRow: some View {
+    private var headerCard: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(state.statusColor)
@@ -51,40 +49,31 @@ struct MenuBarView: View {
                 .help("지금 갱신")
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassCard()
     }
 
-    // MARK: - Pro 사용량 섹션
+    // MARK: - Pro 사용량 카드
 
-    private var proUsageSection: some View {
+    private var proUsageCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let window = state.fiveHourUsage {
-                usageRow(
-                    label: "5시간 윈도우",
-                    icon: "clock.fill",
-                    window: window
-                )
+                usageRow(label: "5시간 윈도우", icon: "clock.fill", window: window)
             }
-
             if let window = state.sevenDayUsage {
-                usageRow(
-                    label: "7일 캡",
-                    icon: "calendar",
-                    window: window
-                )
+                usageRow(label: "7일 캡", icon: "calendar", window: window)
             }
-
             if let window = state.sevenDaySonnetUsage {
-                usageRow(
-                    label: "7일 Sonnet",
-                    icon: "sparkles",
-                    window: window
-                )
+                usageRow(label: "7일 Sonnet", icon: "sparkles", window: window)
             }
-
             if state.fiveHourUsage == nil && !state.isLoading {
                 errorView
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassCard()
     }
 
     // MARK: - 사용량 행 (ProgressBar + 리셋 시각)
@@ -114,10 +103,10 @@ struct MenuBarView: View {
         }
     }
 
-    // MARK: - Claude Code OTel 메트릭 섹션
+    // MARK: - Claude Code OTel 메트릭 카드
 
-    private func codeMetricsSection(_ m: CodeUsageMetrics) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private func codeMetricsCard(_ m: CodeUsageMetrics) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
             Label("Claude Code (오늘)", systemImage: "terminal")
                 .font(.system(size: 11, weight: .medium))
                 .foregroundStyle(.secondary)
@@ -128,6 +117,9 @@ struct MenuBarView: View {
                 chip(value: "\(Int(m.sessionCount))", label: "세션")
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassCard()
     }
 
     private func chip(value: String, label: String) -> some View {
@@ -140,7 +132,7 @@ struct MenuBarView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
+        .glassChip()
     }
 
     // MARK: - 에러 뷰
@@ -164,12 +156,17 @@ struct MenuBarView: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(8)
-        .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+        .glassCard(cornerRadius: 8)
+        // 에러 상태임을 명시하기 위해 orange 테두리 오버레이
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(.orange.opacity(0.4), lineWidth: 0.5)
+        )
     }
 
-    // MARK: - 푸터
+    // MARK: - 푸터 카드
 
-    private var footerRow: some View {
+    private var footerCard: some View {
         @Bindable var state = state
         return VStack(spacing: 6) {
             // 로그인 시 자동 실행 토글
@@ -197,6 +194,9 @@ struct MenuBarView: View {
                     .foregroundStyle(.tertiary)
             }
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .glassCard()
     }
 
     // MARK: - 헬퍼
@@ -239,26 +239,34 @@ struct MenuBarView: View {
 // MARK: - 메뉴바 라벨 뷰
 
 /// 메뉴바에 상시 표시되는 아이콘 + 사용률.
+///
+/// 커스텀 상태바 아이콘(icon_status_bar.png)을 사용하며,
+/// 리소스 로드 실패 시 SF Symbol 폴백으로 동작한다.
 struct MenuBarLabelView: View {
 
     let appState: AppState
 
     var body: some View {
         HStack(spacing: 3) {
-            Image(systemName: iconName)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(appState.statusColor)
+            statusBarIcon
             Text(appState.shortStatusText)
                 .font(.system(size: 11, weight: .medium).monospacedDigit())
         }
     }
 
-    private var iconName: String {
-        guard let ratio = appState.fiveHourUsage?.ratio else { return "circle.dashed" }
-        switch ratio {
-        case ..<0.5: return "circle.fill"
-        case ..<0.8: return "circle.lefthalf.filled"
-        default: return "exclamationmark.circle.fill"
+    /// 번들 리소스에서 상태바 아이콘을 로드하여 표시한다.
+    @ViewBuilder
+    private var statusBarIcon: some View {
+        if let url = Bundle.module.url(forResource: "icon_status_bar", withExtension: "png"),
+           let nsImage = NSImage(contentsOf: url) {
+            Image(nsImage: nsImage)
+                .resizable()
+                .frame(width: 18, height: 18)
+        } else {
+            // 리소스 로드 실패 시 폴백
+            Image(systemName: "circle.fill")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(appState.statusColor)
         }
     }
 }

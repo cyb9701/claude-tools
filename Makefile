@@ -3,6 +3,9 @@ BUNDLE_ID   = com.claudeusagebar.app
 INSTALL_DIR = $(HOME)/Applications
 APP_BUNDLE  = $(INSTALL_DIR)/$(APP_NAME).app
 BINARY_SRC  = .build/release/$(APP_NAME)
+ICON_SRC    = Sources/icon_app.png
+ICONSET_DIR = /tmp/AppIcon.iconset
+ICNS_FILE   = /tmp/AppIcon.icns
 
 # ─── 기본 타겟 ────────────────────────────────────────────
 
@@ -39,6 +42,22 @@ install: build
 	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
 	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
 	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	@# PNG → ICNS 변환 후 Resources 에 복사
+	@echo "▶ 아이콘 변환 중..."
+	@rm -rf "$(ICONSET_DIR)" && mkdir -p "$(ICONSET_DIR)"
+	@sips -z 16   16   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16.png"      2>/dev/null
+	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16@2x.png"   2>/dev/null
+	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32.png"      2>/dev/null
+	@sips -z 64   64   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32@2x.png"   2>/dev/null
+	@sips -z 128  128  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128.png"    2>/dev/null
+	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128@2x.png" 2>/dev/null
+	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256.png"    2>/dev/null
+	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256@2x.png" 2>/dev/null
+	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512.png"    2>/dev/null
+	@sips -z 1024 1024 "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512@2x.png" 2>/dev/null
+	@iconutil -c icns "$(ICONSET_DIR)" -o "$(ICNS_FILE)"
+	@cp "$(ICNS_FILE)" "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
+	@echo "✓ 아이콘 적용 완료"
 	@# 코드 서명 (자체 서명 — App Store 외 배포)
 	@codesign --force --deep --sign - "$(APP_BUNDLE)" 2>/dev/null || true
 	@echo ""
@@ -58,6 +77,20 @@ update: build
 	@pkill -x "$(APP_NAME)" 2>/dev/null || true
 	@sleep 0.5
 	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
+	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	@rm -rf "$(ICONSET_DIR)" && mkdir -p "$(ICONSET_DIR)"
+	@sips -z 16   16   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16.png"      2>/dev/null
+	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16@2x.png"   2>/dev/null
+	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32.png"      2>/dev/null
+	@sips -z 64   64   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32@2x.png"   2>/dev/null
+	@sips -z 128  128  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128.png"    2>/dev/null
+	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128@2x.png" 2>/dev/null
+	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256.png"    2>/dev/null
+	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256@2x.png" 2>/dev/null
+	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512.png"    2>/dev/null
+	@sips -z 1024 1024 "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512@2x.png" 2>/dev/null
+	@iconutil -c icns "$(ICONSET_DIR)" -o "$(ICNS_FILE)"
+	@cp "$(ICNS_FILE)" "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
 	@codesign --force --deep --sign - "$(APP_BUNDLE)" 2>/dev/null || true
 	@open "$(APP_BUNDLE)"
 	@echo "✅ 업데이트 완료"
