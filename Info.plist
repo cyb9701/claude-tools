@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>ClaudeUsageBar</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.claudeusagebar.app</string>
+    <key>CFBundleName</key>
+    <string>ClaudeUsageBar</string>
+    <key>CFBundleDisplayName</key>
+    <string>ClaudeUsageBar</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <!-- Dock 아이콘 없이 메뉴바 전용 앱으로 실행 -->
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <!-- Keychain 접근을 위한 보안 예외 -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Claude 사용량 데이터를 읽기 위해 Keychain에 접근합니다.</string>
+</dict>
+</plist>

@@ -1,0 +1,205 @@
+import Foundation
+import Security
+
+/// OAuth 토큰 관리자.
+///
+/// macOS Keychain의 "Claude Code-credentials" 항목에서 토큰을 로드한다.
+/// 실제 Keychain JSON 구조:
+/// {
+///   "claudeAiOauth": {
+///     "accessToken": "sk-ant-oat01-...",
+///     "refreshToken": "sk-ant-ort01-...",
+///     "expiresAt": 1774950761041,  // 밀리초 단위 Unix 타임스탬프
+///     "scopes": [...],
+///     "subscriptionType": "max",
+///     "rateLimitTier": "..."
+///   },
+///   "organizationUuid": "..."
+/// }
+/// actor를 사용하여 Swift 6의 데이터 레이스 안전성을 보장한다.
+actor OAuthTokenManager {
+
+    static let shared = OAuthTokenManager()
+
+    // 메모리 캐시: 만료 60초 전까지 유효
+    private var cachedToken: String?
+    private var tokenExpiresAt: Date?
+    private var cachedRefreshToken: String?
+
+    private init() {}
+
+    // MARK: - 공개 메서드
+
+    /// 유효한 access token 반환. 만료 시 자동 갱신.
+    func getValidToken() async throws -> String {
+        // 캐시 유효 확인
+        if let cached = cachedToken,
+           let expiresAt = tokenExpiresAt,
+           expiresAt.timeIntervalSinceNow > 60 {
+            return cached
+        }
+
+        let credentials = try loadFromKeychain()
+
+        // 토큰 만료 여부 확인 후 갱신
+        if let expiresAt = credentials.expiresAt,
+           expiresAt.timeIntervalSinceNow < 60,
+           !credentials.refreshToken.isEmpty {
+            return try await refreshAccessToken(using: credentials.refreshToken)
+        }
+
+        // 유효한 토큰 캐시 저장
+        cachedToken = credentials.accessToken
+        tokenExpiresAt = credentials.expiresAt
+        cachedRefreshToken = credentials.refreshToken
+
+        return credentials.accessToken
+    }
+
+    // MARK: - Keychain 읽기
+
+    private func loadFromKeychain() throws -> OAuthCredentials {
+        // 1순위: "Claude Code-credentials" (Claude Code CLI)
+        if let credentials = try? readKeychain(
+            service: "Claude Code-credentials",
+            account: NSUserName()
+        ) {
+            return credentials
+        }
+
+        // 2순위: 환경변수 (테스트용)
+        if let envToken = ProcessInfo.processInfo.environment["CLAUDE_OAUTH_TOKEN"] {
+            return OAuthCredentials(
+                accessToken: envToken,
+                refreshToken: "",
+                expiresAt: Date().addingTimeInterval(3600)
+            )
+        }
+
+        throw ClaudeUsageError.credentialsNotFound
+    }
+
+    private func readKeychain(service: String, account: String) throws -> OAuthCredentials {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var item: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        guard status == errSecSuccess, let data = item as? Data else {
+            throw ClaudeUsageError.keychainReadFailed(status)
+        }
+
+        return try parseCredentialsData(data)
+    }
+
+    private func parseCredentialsData(_ data: Data) throws -> OAuthCredentials {
+        // 래퍼 구조 파싱: { "claudeAiOauth": { "accessToken": ... } }
+        if let wrapper = try? JSONDecoder().decode(CredentialsWrapper.self, from: data) {
+            return wrapper.claudeAiOauth
+        }
+
+        // 래퍼 없는 직접 구조: { "accessToken": ... }
+        if let direct = try? JSONDecoder().decode(OAuthCredentials.self, from: data) {
+            return direct
+        }
+
+        // 단순 토큰 문자열
+        if let tokenString = String(data: data, encoding: .utf8),
+           tokenString.hasPrefix("sk-ant-") {
+            return OAuthCredentials(
+                accessToken: tokenString.trimmingCharacters(in: .whitespacesAndNewlines),
+                refreshToken: "",
+                expiresAt: nil
+            )
+        }
+
+        throw ClaudeUsageError.invalidCredentials
+    }
+
+    // MARK: - 토큰 갱신
+
+    private func refreshAccessToken(using refreshToken: String) async throws -> String {
+        var request = URLRequest(
+            url: URL(string: "https://platform.claude.com/v1/oauth/token")!,
+            timeoutInterval: 30
+        )
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        request.httpBody = "grant_type=refresh_token&refresh_token=\(refreshToken)"
+            .data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              httpResponse.statusCode == 200 else {
+            throw ClaudeUsageError.tokenRefreshFailed
+        }
+
+        let refreshed = try JSONDecoder().decode(TokenRefreshResponse.self, from: data)
+
+        cachedToken = refreshed.accessToken
+        tokenExpiresAt = Date().addingTimeInterval(TimeInterval(refreshed.expiresIn ?? 3600))
+        return refreshed.accessToken
+    }
+}
+
+// MARK: - 내부 모델
+
+/// Keychain 최상위 래퍼 구조.
+private struct CredentialsWrapper: Decodable {
+    let claudeAiOauth: OAuthCredentials
+}
+
+/// OAuth 자격증명. expiresAt은 밀리초 단위 Unix 타임스탬프.
+struct OAuthCredentials: Decodable {
+    let accessToken: String
+    let refreshToken: String
+    let expiresAt: Date?
+
+    init(accessToken: String, refreshToken: String, expiresAt: Date?) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.expiresAt = expiresAt
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case accessToken, refreshToken, expiresAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+
+        guard let token = try? c.decode(String.self, forKey: .accessToken) else {
+            throw ClaudeUsageError.invalidCredentials
+        }
+        accessToken = token
+        refreshToken = (try? c.decode(String.self, forKey: .refreshToken)) ?? ""
+
+        // expiresAt: 밀리초 단위 Unix 타임스탬프 (예: 1774950761041)
+        if let ms = try? c.decode(Double.self, forKey: .expiresAt) {
+            let seconds = ms > 1_000_000_000_000 ? ms / 1000 : ms
+            expiresAt = Date(timeIntervalSince1970: seconds)
+        } else if let isoStr = try? c.decode(String.self, forKey: .expiresAt) {
+            expiresAt = ISO8601DateFormatter().date(from: isoStr)
+        } else {
+            expiresAt = nil
+        }
+    }
+}
+
+/// 토큰 갱신 API 응답.
+struct TokenRefreshResponse: Decodable {
+    let accessToken: String
+    let expiresIn: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case accessToken = "access_token"
+        case expiresIn = "expires_in"
+    }
+}
