@@ -1,9 +1,0 @@
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Auth/OAuthTokenManager.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/ClaudeUsageBarApp.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Core/AppState.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Core/UsageModel.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/MenuBar/MenuBarView.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/OTel/PrometheusPoller.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/Features/ProUsage/OAuthUsageFetcher.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/Sources/UI/LiquidGlassModifier.swift
-/Users/cyb/dev/choi/ClaudeUsageBar/.build/arm64-apple-macosx/release/ClaudeUsageBar.build/DerivedSources/resource_bundle_accessor.swift
