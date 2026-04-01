@@ -31,14 +31,25 @@ actor OAuthTokenManager {
     // MARK: - 공개 메서드
 
     /// 유효한 access token 반환. 만료 시 자동 갱신.
+    ///
+    /// Keychain 접근 빈도를 최소화하여 비밀번호 팝업을 줄인다.
+    /// 캐시 → refresh token으로 HTTP 갱신 → Keychain 순서로 시도한다.
     func getValidToken() async throws -> String {
-        // 캐시 유효 확인
+        // 1단계: 캐시된 토큰이 아직 유효하면 즉시 반환
         if let cached = cachedToken,
            let expiresAt = tokenExpiresAt,
            expiresAt.timeIntervalSinceNow > 60 {
             return cached
         }
 
+        // 2단계: 캐시된 refresh token으로 HTTP 갱신 시도 (Keychain 접근 없음)
+        if let refreshToken = cachedRefreshToken, !refreshToken.isEmpty {
+            if let newToken = try? await refreshAccessToken(using: refreshToken) {
+                return newToken
+            }
+        }
+
+        // 3단계: Keychain에서 자격증명 로드 (팝업 발생 가능)
         let credentials = try loadFromKeychain()
 
         // 토큰 만료 여부 확인 후 갱신

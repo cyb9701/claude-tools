@@ -3,7 +3,8 @@
     "allow": [
       "Bash(make install:*)",
       "WebSearch",
-      "Bash(make update:*)"
+      "Bash(make update:*)",
+      "Bash(swift build:*)"
     ]
   }
 }

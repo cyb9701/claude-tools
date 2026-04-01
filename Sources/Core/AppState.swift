@@ -52,11 +52,19 @@ final class AppState {
     // MARK: - 초기화
 
     init() {
-        Task {
+        startTimers()
+        // 앱 시작 직후 Keychain 접근이 불안정할 수 있으므로
+        // 짧은 지연 후 첫 조회를 수행하고, 실패 시 한 번 재시도한다.
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1))
             await refresh()
             await pollOTel()
+            // 첫 조회 실패 시 3초 후 재시도
+            if fiveHourUsage == nil {
+                try? await Task.sleep(for: .seconds(3))
+                await refresh()
+            }
         }
-        startTimers()
     }
 
     // MARK: - 공개 메서드

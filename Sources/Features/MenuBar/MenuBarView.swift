@@ -2,8 +2,8 @@ import SwiftUI
 
 /// 메뉴바 팝오버 메인 뷰.
 ///
-/// Pro 5시간 윈도우, 주간 캡, 모델별 한도, Claude Code OTel 메트릭을 표시한다.
-/// macOS 26+에서는 각 섹션이 Liquid Glass 카드로 렌더링된다.
+/// Pro 사용량(Current session, Current week), Claude Code OTel 메트릭을 표시한다.
+/// macOS 네이티브 메뉴바 팝오버 스타일을 따른다.
 struct MenuBarView: View {
 
     @Environment(AppState.self) private var state
@@ -12,28 +12,31 @@ struct MenuBarView: View {
     @State private var tickCount = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            headerCard
-            proUsageCard
+        VStack(alignment: .leading, spacing: 0) {
+            headerSection
+            Divider().padding(.horizontal, 12)
+            proUsageSection
             if state.isOTelAvailable, let metrics = state.codeMetrics {
-                codeMetricsCard(metrics)
+                Divider().padding(.horizontal, 12)
+                codeMetricsSection(metrics)
             }
-            footerCard
+            Divider().padding(.horizontal, 12)
+            footerSection
         }
-        .padding(12)
+        .padding(.vertical, 4)
         .frame(width: 290)
-        .onReceive(ticker) { _ in tickCount += 1 } // 뷰 재계산 트리거
+        .onReceive(ticker) { _ in tickCount += 1 }
     }
 
-    // MARK: - 헤더 카드
+    // MARK: - 헤더
 
-    private var headerCard: some View {
+    private var headerSection: some View {
         HStack(spacing: 6) {
             Circle()
                 .fill(state.statusColor)
                 .frame(width: 8, height: 8)
-            Text("Claude 사용량")
-                .font(.system(size: 13, weight: .semibold))
+            Text("Claude Usage")
+                .font(.system(size: 14, weight: .semibold))
             Spacer()
             if state.isLoading {
                 ProgressView().scaleEffect(0.65)
@@ -42,30 +45,29 @@ struct MenuBarView: View {
                     Task { await state.refresh() }
                 } label: {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
-                .help("지금 갱신")
+                .help("Refresh now")
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .glassCard()
     }
 
-    // MARK: - Pro 사용량 카드
+    // MARK: - Pro 사용량
 
-    private var proUsageCard: some View {
+    private var proUsageSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let window = state.fiveHourUsage {
-                usageRow(label: "5시간 윈도우", icon: "clock.fill", window: window)
+                usageRow(label: "Current session", icon: "clock.fill", window: window)
             }
             if let window = state.sevenDayUsage {
-                usageRow(label: "7일 캡", icon: "calendar", window: window)
+                usageRow(label: "Current week (all models)", icon: "calendar", window: window)
             }
             if let window = state.sevenDaySonnetUsage {
-                usageRow(label: "7일 Sonnet", icon: "sparkles", window: window)
+                usageRow(label: "Current week (Sonnet only)", icon: "sparkles", window: window)
             }
             if state.fiveHourUsage == nil && !state.isLoading {
                 errorView
@@ -73,7 +75,6 @@ struct MenuBarView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .glassCard()
     }
 
     // MARK: - 사용량 행 (ProgressBar + 리셋 시각)
@@ -82,11 +83,11 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Label(label, systemImage: icon)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text("\(window.percentInt)%")
-                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                    .font(.system(size: 12, weight: .semibold).monospacedDigit())
                     .foregroundStyle(progressColor(for: window.ratio))
             }
 
@@ -97,66 +98,65 @@ struct MenuBarView: View {
 
             if let subtitle = resetLabel(for: window) {
                 Text(subtitle)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
         }
     }
 
-    // MARK: - Claude Code OTel 메트릭 카드
+    // MARK: - Claude Code OTel 메트릭
 
-    private func codeMetricsCard(_ m: CodeUsageMetrics) -> some View {
+    private func codeMetricsSection(_ m: CodeUsageMetrics) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Claude Code (오늘)", systemImage: "terminal")
-                .font(.system(size: 11, weight: .medium))
+            Label("Claude Code (today)", systemImage: "terminal")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                chip(value: formatTokens(m.inputTokens + m.outputTokens), label: "토큰")
-                chip(value: String(format: "$%.3f", m.costUSD), label: "비용")
-                chip(value: "\(Int(m.sessionCount))", label: "세션")
+                chip(value: formatTokens(m.inputTokens + m.outputTokens), label: "tokens")
+                chip(value: String(format: "$%.3f", m.costUSD), label: "cost")
+                chip(value: "\(Int(m.sessionCount))", label: "sessions")
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .glassCard()
     }
 
     private func chip(value: String, label: String) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.system(size: 12, weight: .semibold).monospacedDigit())
+                .font(.system(size: 13, weight: .semibold).monospacedDigit())
             Text(label)
-                .font(.system(size: 9))
+                .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
-        .glassChip()
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
     }
 
     // MARK: - 에러 뷰
 
     private var errorView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("데이터 로드 실패", systemImage: "exclamationmark.triangle.fill")
-                .font(.system(size: 11, weight: .medium))
+            Label("Failed to load data", systemImage: "exclamationmark.triangle.fill")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.orange)
 
             if let msg = state.errorMessage {
                 Text(msg)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(4)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("Claude Code를 먼저 실행하고 로그인해주세요.")
-                .font(.system(size: 10))
+            Text("Please run Claude Code and sign in first.")
+                .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
         }
         .padding(8)
-        .glassCard(cornerRadius: 8)
+        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
         // 에러 상태임을 명시하기 위해 orange 테두리 오버레이
         .overlay(
             RoundedRectangle(cornerRadius: 8)
@@ -164,15 +164,16 @@ struct MenuBarView: View {
         )
     }
 
-    // MARK: - 푸터 카드
+    // MARK: - 푸터
 
-    private var footerCard: some View {
+    private var footerSection: some View {
         @Bindable var state = state
+        // tickCount를 읽어 1초마다 뷰 재평가를 강제한다.
+        let _ = tickCount
         return VStack(spacing: 6) {
-            // 로그인 시 자동 실행 토글
             Toggle(isOn: $state.launchAtLogin) {
-                Label("로그인 시 자동 실행", systemImage: "power")
-                    .font(.system(size: 11))
+                Label("Launch at login", systemImage: "power")
+                    .font(.system(size: 12))
             }
             .toggleStyle(.switch)
             .controlSize(.mini)
@@ -180,23 +181,22 @@ struct MenuBarView: View {
             HStack {
                 if let updated = state.lastUpdated {
                     Text(relativeTime(from: updated))
-                        .font(.system(size: 10))
+                        .font(.system(size: 11))
                         .foregroundStyle(.tertiary)
                 } else {
-                    Text("로딩 중...")
-                        .font(.system(size: 10))
+                    Text("Loading...")
+                        .font(.system(size: 11))
                         .foregroundStyle(.tertiary)
                 }
                 Spacer()
-                Button("종료") { NSApplication.shared.terminate(nil) }
-                    .font(.system(size: 10))
+                Button("Quit") { NSApplication.shared.terminate(nil) }
+                    .font(.system(size: 11))
                     .buttonStyle(.plain)
                     .foregroundStyle(.tertiary)
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .glassCard()
     }
 
     // MARK: - 헬퍼
@@ -209,22 +209,47 @@ struct MenuBarView: View {
         }
     }
 
+    /// 리셋 시각을 Asia/Seoul 타임존의 절대시간으로 표시한다.
+    ///
+    /// 오늘이면 "Resets 2pm (Asia/Seoul)", 내일 이후이면 "Resets Apr 4 at 11pm (Asia/Seoul)".
     private func resetLabel(for window: RateWindow) -> String? {
-        guard let seconds = window.secondsUntilReset else { return nil }
-        if seconds <= 0 { return "리셋됨" }
-        let h = Int(seconds) / 3600
-        let m = Int(seconds) % 3600 / 60
-        let s = Int(seconds) % 60
-        if h > 0 { return "리셋까지 \(h)시간 \(m)분" }
-        if m > 0 { return "리셋까지 \(m)분 \(s)초" }
-        return "리셋까지 \(s)초"
+        guard let resetAt = window.resetAt else { return nil }
+        guard let seconds = window.secondsUntilReset, seconds > 0 else { return "Reset" }
+
+        let seoul = TimeZone(identifier: "Asia/Seoul")!
+        let now = Date()
+
+        let formatter = DateFormatter()
+        formatter.timeZone = seoul
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+
+        // Seoul 타임존 기준으로 오늘인지 판별
+        var seoulCalendar = Calendar.current
+        seoulCalendar.timeZone = seoul
+        let isToday = seoulCalendar.isDate(resetAt, inSameDayAs: now)
+        let isTomorrow = seoulCalendar.isDateInTomorrow(resetAt)
+
+        formatter.dateFormat = "ha"
+        let timeStr = formatter.string(from: resetAt).lowercased()
+
+        if isToday || isTomorrow {
+            return "Resets \(timeStr) (Asia/Seoul)"
+        } else {
+            let dayFormatter = DateFormatter()
+            dayFormatter.timeZone = seoul
+            dayFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dayFormatter.dateFormat = "MMM d"
+            let dayStr = dayFormatter.string(from: resetAt)
+            return "Resets \(dayStr) at \(timeStr) (Asia/Seoul)"
+        }
     }
 
+    /// 마지막 갱신 시각의 상대 시간 표시.
     private func relativeTime(from date: Date) -> String {
-        let diff = Int(-date.timeIntervalSinceNow)
-        if diff < 60 { return "방금 갱신" }
-        if diff < 3600 { return "\(diff / 60)분 전 갱신" }
-        return "\(diff / 3600)시간 전 갱신"
+        let diff = Int(Date().timeIntervalSince(date))
+        if diff < 60 { return "Updated just now" }
+        if diff < 3600 { return "Updated \(diff / 60)m ago" }
+        return "Updated \(diff / 3600)h ago"
     }
 
     private func formatTokens(_ tokens: Double) -> String {
