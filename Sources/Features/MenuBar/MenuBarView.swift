@@ -23,8 +23,8 @@ struct MenuBarView: View {
             Divider().padding(.horizontal, 12)
             footerSection
         }
-        .padding(.vertical, 4)
-        .frame(width: 290)
+        .padding(.vertical, 6)
+        .frame(width: 300)
         .onReceive(ticker) { _ in tickCount += 1 }
     }
 
@@ -52,14 +52,14 @@ struct MenuBarView: View {
                 .help("Refresh now")
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     // MARK: - Pro 사용량
 
     private var proUsageSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             if let window = state.fiveHourUsage {
                 usageRow(label: "Current session", icon: "clock.fill", window: window)
             }
@@ -73,14 +73,14 @@ struct MenuBarView: View {
                 errorView
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     // MARK: - 사용량 행 (ProgressBar + 리셋 시각)
 
     private func usageRow(label: String, icon: String, window: RateWindow) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Label(label, systemImage: icon)
                     .font(.system(size: 12, weight: .medium))
@@ -118,8 +118,8 @@ struct MenuBarView: View {
                 chip(value: "\(Int(m.sessionCount))", label: "sessions")
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     private func chip(value: String, label: String) -> some View {
@@ -131,14 +131,14 @@ struct MenuBarView: View {
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 7))
     }
 
     // MARK: - 에러 뷰
 
     private var errorView: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Label("Failed to load data", systemImage: "exclamationmark.triangle.fill")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.orange)
@@ -170,7 +170,7 @@ struct MenuBarView: View {
         @Bindable var state = state
         // tickCount를 읽어 1초마다 뷰 재평가를 강제한다.
         let _ = tickCount
-        return VStack(spacing: 6) {
+        return VStack(spacing: 8) {
             Toggle(isOn: $state.launchAtLogin) {
                 Label("Launch at login", systemImage: "power")
                     .font(.system(size: 12))
@@ -195,8 +195,8 @@ struct MenuBarView: View {
                     .foregroundStyle(.tertiary)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     // MARK: - 헬퍼
@@ -272,25 +272,32 @@ struct MenuBarLabelView: View {
     let appState: AppState
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(alignment: .center, spacing: 3) {
             statusBarIcon
             Text(appState.shortStatusText)
-                .font(.system(size: 11, weight: .medium).monospacedDigit())
+                .font(.system(size: 12, weight: .medium).monospacedDigit())
+                // 메뉴바 텍스트 수직 정렬 기준을 명시적으로 설정
+                .baselineOffset(0)
         }
     }
 
     /// 번들 리소스에서 상태바 아이콘을 로드하여 표시한다.
+    ///
+    /// macOS 메뉴바 권장 아이콘 크기는 16×16pt.
+    /// .renderingMode(.template)으로 다크/라이트 모드 자동 대응.
     @ViewBuilder
     private var statusBarIcon: some View {
         if let url = Bundle.module.url(forResource: "icon_status_bar", withExtension: "png"),
            let nsImage = NSImage(contentsOf: url) {
             Image(nsImage: nsImage)
                 .resizable()
-                .frame(width: 18, height: 18)
+                .renderingMode(.template)
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 16, height: 16)
         } else {
             // 리소스 로드 실패 시 폴백
-            Image(systemName: "circle.fill")
-                .font(.system(size: 11, weight: .medium))
+            Image(systemName: "chart.bar.fill")
+                .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(appState.statusColor)
         }
     }
