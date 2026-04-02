@@ -119,6 +119,7 @@ enum ClaudeUsageError: LocalizedError {
     case credentialsNotFound
     case invalidCredentials
     case tokenRefreshFailed
+    case tokenRefreshNetworkError
     case apiError(Int, String)
     case unexpectedResponseFormat(String)
 
@@ -131,7 +132,9 @@ enum ClaudeUsageError: LocalizedError {
         case .invalidCredentials:
             return "자격증명 형식이 올바르지 않습니다."
         case .tokenRefreshFailed:
-            return "OAuth 토큰 갱신에 실패했습니다."
+            return "OAuth 토큰 갱신에 실패했습니다. Claude Code 재로그인이 필요할 수 있습니다."
+        case .tokenRefreshNetworkError:
+            return "네트워크 연결을 확인해주세요. 잠시 후 자동으로 재시도합니다."
         case .apiError(let code, let message):
             return "API 오류 \(code): \(message)"
         case .unexpectedResponseFormat(let raw):

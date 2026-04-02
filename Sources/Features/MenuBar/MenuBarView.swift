@@ -151,9 +151,12 @@ struct MenuBarView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("Please run Claude Code and sign in first.")
-                .font(.system(size: 11))
-                .foregroundStyle(.tertiary)
+            // 네트워크 오류 시에는 로그인 안내가 부적절하므로 표시하지 않는다.
+            if !(state.errorMessage?.contains("네트워크") ?? false) {
+                Text("Please run Claude Code and sign in first.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+            }
         }
         .padding(8)
         .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))

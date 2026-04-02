@@ -53,21 +53,30 @@ final class AppState {
 
     init() {
         startTimers()
-        // 앱 시작 직후 Keychain 접근이 불안정할 수 있으므로
-        // 짧은 지연 후 첫 조회를 수행하고, 실패 시 한 번 재시도한다.
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(1))
-            await refresh()
-            await pollOTel()
-            // 첫 조회 실패 시 3초 후 재시도
-            if fiveHourUsage == nil {
-                try? await Task.sleep(for: .seconds(3))
-                await refresh()
-            }
+            await performStartupRefreshWithBackoff()
         }
     }
 
     // MARK: - 공개 메서드
+
+    /// 부팅 직후 지수적 백오프 초기 조회.
+    ///
+    /// macOS 부팅 환경(WiFi 지연, FileVault 잠금 해제 등)에서는
+    /// Keychain과 네트워크가 준비되기까지 시간이 걸릴 수 있다.
+    /// 1s 초기 대기 후 실패 시 2s → 5s → 15s → 30s 순서로 최대 4회 재시도한다.
+    private func performStartupRefreshWithBackoff() async {
+        try? await Task.sleep(for: .seconds(1))
+        await refresh()
+        await pollOTel()
+        guard fiveHourUsage == nil else { return }
+
+        for delay: Duration in [.seconds(2), .seconds(5), .seconds(15), .seconds(30)] {
+            try? await Task.sleep(for: delay)
+            await refresh()
+            if fiveHourUsage != nil { return }
+        }
+    }
 
     /// 사용량 데이터 수동 갱신.
     func refresh() async {

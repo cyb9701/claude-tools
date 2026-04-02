@@ -52,6 +52,12 @@ actor OAuthTokenManager {
         // 3단계: Keychain에서 자격증명 로드 (팝업 발생 가능)
         let credentials = try loadFromKeychain()
 
+        // HTTP 갱신 전에 refresh token을 먼저 캐시한다.
+        // 갱신이 실패하더라도 이후 Stage 2에서 재시도할 수 있다.
+        if !credentials.refreshToken.isEmpty {
+            cachedRefreshToken = credentials.refreshToken
+        }
+
         // 토큰 만료 여부 확인 후 갱신
         if let expiresAt = credentials.expiresAt,
            expiresAt.timeIntervalSinceNow < 60,
@@ -62,7 +68,6 @@ actor OAuthTokenManager {
         // 유효한 토큰 캐시 저장
         cachedToken = credentials.accessToken
         tokenExpiresAt = credentials.expiresAt
-        cachedRefreshToken = credentials.refreshToken
 
         return credentials.accessToken
     }
@@ -145,10 +150,17 @@ actor OAuthTokenManager {
         request.httpBody = "grant_type=refresh_token&refresh_token=\(refreshToken)"
             .data(using: .utf8)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            // 네트워크 계층 오류 (연결 없음, 타임아웃 등) — 재시도 가능
+            throw ClaudeUsageError.tokenRefreshNetworkError
+        }
 
         guard let httpResponse = response as? HTTPURLResponse,
               httpResponse.statusCode == 200 else {
+            // HTTP 4xx/5xx: 인증 오류 (토큰 무효, 서버 오류 등) — 재로그인 필요
             throw ClaudeUsageError.tokenRefreshFailed
         }
 
@@ -156,6 +168,10 @@ actor OAuthTokenManager {
 
         cachedToken = refreshed.accessToken
         tokenExpiresAt = Date().addingTimeInterval(TimeInterval(refreshed.expiresIn ?? 3600))
+        // 서버가 새 refresh token을 반환한 경우(토큰 로테이션) 캐시를 갱신한다.
+        if let newRefreshToken = refreshed.refreshToken, !newRefreshToken.isEmpty {
+            cachedRefreshToken = newRefreshToken
+        }
         return refreshed.accessToken
     }
 }
@@ -205,12 +221,18 @@ struct OAuthCredentials: Decodable {
 }
 
 /// 토큰 갱신 API 응답.
+///
+/// OAuth 2.0 RFC 6749 §6에 따라 서버는 새 refresh token을 반환할 수 있다(토큰 로테이션).
+/// refreshToken이 nil이면 기존 캐시된 refresh token을 계속 사용한다.
 struct TokenRefreshResponse: Decodable {
     let accessToken: String
     let expiresIn: Int?
+    /// 서버가 토큰 로테이션 시 반환하는 새 refresh token.
+    let refreshToken: String?
 
     private enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case expiresIn = "expires_in"
+        case refreshToken = "refresh_token"
     }
 }
