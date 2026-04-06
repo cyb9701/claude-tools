@@ -28,40 +28,37 @@ struct EditorView: View {
         @Bindable var appState = appState
 
         VStack(spacing: 0) {
-            // 상단 타이틀바
+            // 상단 타이틀바: macOS .bar 소재를 사용해 시스템 배경과 자연스럽게 통합
             HStack {
                 Text("Claude MD Editor")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .font(.headline)
                 Spacer()
                 Text("\(lineCount)줄 · \(charCount)자")
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundStyle(.tertiary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
+            .background(.bar)
 
             Divider()
 
-            // 텍스트 에디터 영역 (flex)
+            // 텍스트 에디터 영역 (flex): 시스템 기본 배경과 폰트 사용
             TextEditor(text: $appState.text)
-                .font(.system(size: 13, design: .monospaced))
-                .scrollContentBackground(.hidden)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
+                .font(.system(.body, design: .monospaced))
 
             Divider()
 
-            // 하단 버튼 바
+            // 하단 버튼 바: macOS .bar 소재로 타이틀바와 대칭 구성
             HStack(spacing: 8) {
-                // 초기화 버튼 (소형, 왼쪽)
+                // 초기화 버튼 (왼쪽, bordered 스타일로 secondary 액션 표현)
                 Button("초기화") {
                     appState.text = ""
                 }
                 .buttonStyle(.bordered)
-                .controlSize(.small)
 
-                // 클립보드 복사 버튼 (전체 너비)
+                // 클립보드 복사 버튼 (전체 너비, borderedProminent로 primary 액션 강조)
                 Button {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(appState.text, forType: .string)
@@ -76,14 +73,14 @@ struct EditorView: View {
                 } label: {
                     Text(appState.copySuccess ? "✓ 복사됨" : "클립보드에 복사")
                         .frame(maxWidth: .infinity)
-                        .frame(height: 22)
                 }
                 .buttonStyle(.borderedProminent)
                 .animation(.easeInOut(duration: 0.2), value: appState.copySuccess)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
+            .background(.bar)
         }
-        .frame(width: 600, height: 400)
+        .frame(width: 400, height: 300)
     }
 }
