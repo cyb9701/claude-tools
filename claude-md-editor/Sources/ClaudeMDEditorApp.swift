@@ -65,6 +65,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsMenu = buildSettingsMenu()
     }
 
+    // 메뉴 항목을 tag로 식별하기 위한 상수.
+    //
+    // title 문자열 기반 검색은 UI 텍스트 변경 시 조용히 깨지므로 정수 tag를 사용한다.
+    private enum MenuItemTag {
+        static let launchAtLogin = 100
+    }
+
     private func buildSettingsMenu() -> NSMenu {
         let menu = NSMenu()
 
@@ -91,6 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             action: #selector(toggleLaunchAtLogin),
             keyEquivalent: ""
         )
+        loginItem.tag = MenuItemTag.launchAtLogin
         loginItem.state = appState.launchAtLogin ? .on : .off
         loginItem.target = self
         menu.addItem(loginItem)
@@ -133,9 +141,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupKeyboardShortcut() {
         // KeyboardShortcuts 콜백은 백그라운드 스레드에서 호출될 수 있으므로
         // @MainActor Task로 감싸 UI 업데이트 안전성 보장
-        KeyboardShortcuts.onKeyUp(for: .toggleEditor) { [weak self] in
+        // AppDelegate는 앱 수명 동안 해제되지 않으므로 strong capture가 안전하다.
+        KeyboardShortcuts.onKeyUp(for: .toggleEditor) { [self] in
             Task { @MainActor in
-                self?.togglePanel()
+                self.togglePanel()
             }
         }
     }
@@ -164,7 +173,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Private
 
-    func togglePanel() {
+    private func togglePanel() {
         if panel?.isVisible == true {
             panel?.orderOut(nil)
         } else {
@@ -175,8 +184,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 설정 메뉴의 "로그인 시 자동 실행" 체크 상태를 실제 등록 상태와 동기화한다.
     @MainActor private func syncLoginItemState() {
-        settingsMenu?.items
-            .first(where: { $0.title == "로그인 시 자동 실행" })?
+        settingsMenu?.item(withTag: MenuItemTag.launchAtLogin)?
             .state = appState.launchAtLogin ? .on : .off
     }
 }
