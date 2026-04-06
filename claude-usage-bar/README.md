@@ -8,7 +8,7 @@
 [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?logo=swift&logoColor=white)](https://swift.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](../LICENSE)
 
-<!-- Screenshot: 세션 사용량, 주간 통계, Claude Code 오늘 메트릭이 표시된 드롭다운 -->
+<!-- Screenshot: Full dropdown showing session usage, weekly stats, and Claude Code today metrics -->
 
 ![Screenshot](screenshots/screenshot.png)
 
@@ -40,7 +40,7 @@ cd claude-tools/claude-usage-bar
 make install
 ```
 
-Builds the app and installs it to `~/Applications/ClaudeUsageBar.app`.
+Builds the app and installs it to `~/Applications/Claude UsageBar.app`.
 
 > **Keychain popup appearing repeatedly?**  
 > Run `make setup-keychain` once to permanently grant access. Requires your macOS login password.
@@ -59,10 +59,12 @@ Restart Claude Code — the section will appear automatically.
 ## Update & Uninstall
 
 ```bash
-# Update
-git pull && make update
+# Update (run from the repo root)
+git pull
+cd claude-usage-bar
+make update
 
-# Uninstall
+# Uninstall (run from claude-usage-bar/)
 make uninstall
 ```
 

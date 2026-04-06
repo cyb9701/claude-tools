@@ -40,7 +40,7 @@ cd claude-tools/claude-usage-bar
 make install
 ```
 
-`~/Applications/ClaudeUsageBar.app`에 앱을 빌드하고 설치합니다.
+`~/Applications/Claude UsageBar.app`에 앱을 빌드하고 설치합니다.
 
 > **Keychain 팝업이 반복적으로 나타나나요?**  
 > `make setup-keychain`을 한 번 실행하면 영구적으로 접근 권한이 부여됩니다. macOS 로그인 비밀번호가 필요합니다.
@@ -59,10 +59,12 @@ Claude Code를 재시작하면 자동으로 해당 섹션이 표시됩니다.
 ## 업데이트 및 제거
 
 ```bash
-# 업데이트
-git pull && make update
+# 업데이트 (저장소 루트에서 실행)
+git pull
+cd claude-usage-bar
+make update
 
-# 제거
+# 제거 (claude-usage-bar/ 에서 실행)
 make uninstall
 ```
 
