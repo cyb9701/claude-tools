@@ -9,6 +9,11 @@ struct EditorView: View {
 
     @Environment(AppState.self) private var appState
 
+    /// 1초 피드백 타이머 태스크.
+    ///
+    /// 연속 클릭 시 이전 타이머를 먼저 취소하여 race condition을 방지한다.
+    @State private var copyTask: Task<Void, Never>?
+
     /// 현재 텍스트의 줄 수.
     private var lineCount: Int {
         appState.text.isEmpty ? 0 : appState.text.components(separatedBy: "\n").count
@@ -61,7 +66,9 @@ struct EditorView: View {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(appState.text, forType: .string)
                     appState.copySuccess = true
-                    Task {
+                    // 이전 피드백 타이머가 있으면 취소 후 새 타이머 시작.
+                    copyTask?.cancel()
+                    copyTask = Task {
                         try? await Task.sleep(for: .seconds(1))
                         appState.copySuccess = false
                     }

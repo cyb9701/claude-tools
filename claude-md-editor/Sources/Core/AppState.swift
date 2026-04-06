@@ -11,12 +11,19 @@ import SwiftUI
 @Observable
 final class AppState {
 
+    /// UserDefaults 키 상수.
+    ///
+    /// 문자열 중복을 방지하고 오타로 인한 저장 불일치를 막는다.
+    private enum Keys {
+        static let editorText = "editorText"
+    }
+
     /// 에디터 텍스트.
     ///
     /// UserDefaults에 직접 저장하여 @Observable 추적을 유지한다.
     /// @ObservationIgnored + @AppStorage 조합은 programmatic 변경 시 UI 갱신이 누락되므로 didSet 방식으로 대체한다.
-    var text: String = UserDefaults.standard.string(forKey: "editorText") ?? "" {
-        didSet { UserDefaults.standard.set(text, forKey: "editorText") }
+    var text: String = UserDefaults.standard.string(forKey: Keys.editorText) ?? "" {
+        didSet { UserDefaults.standard.set(text, forKey: Keys.editorText) }
     }
 
     /// 복사 완료 후 버튼 피드백을 1초간 표시하기 위한 상태.
