@@ -208,8 +208,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // 선택 텍스트가 아닌 appState.text 전체를 저장하는 것이 의도된 동작이다.
             // 클립보드에 복사된 실제 내용(선택 텍스트)과 다를 수 있으나,
             // 이 앱의 사용 맥락(프롬프트 전체 관리)에서 전체 텍스트 기록이 더 유용하다.
-            if event.modifierFlags.contains(.command),
-               event.charactersIgnoringModifiers == "c" {
+            // keyCode 8 = 물리적 c키 — charactersIgnoringModifiers는 한국어 IME 활성 시 "c"를 반환하지 않을 수 있어 keyCode를 사용한다.
+            if event.modifierFlags.contains(.command), event.keyCode == 8 {
                 self.appState.history.add(self.appState.text)
             }
 
