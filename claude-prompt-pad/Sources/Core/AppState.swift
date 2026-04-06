@@ -35,11 +35,13 @@ final class AppState {
     /// 히스토리 패널 표시 여부.
     ///
     /// true일 때 NSPanel 너비가 560px으로 확장되고 EditorView 우측에 HistoryPanelView가 나타난다.
-    /// AppDelegate의 onToggleHistory 콜백이 패널 리사이즈를 담당하므로 직접 수정하지 않는다.
+    /// SwiftUI View에서 직접 수정하지 않는다 — onToggleHistory 콜백을 통해 AppDelegate가
+    /// 패널 리사이즈와 상태 변경 순서를 제어한다.
     var showingHistory = false
 
     /// 복사 기록 저장소.
     ///
+    /// @Observable 클래스이므로 참조는 let으로 고정하고 내부 상태만 변경한다.
     /// 메모리 only — 앱 종료 시 초기화된다.
     let history = ClipboardHistory()
 
