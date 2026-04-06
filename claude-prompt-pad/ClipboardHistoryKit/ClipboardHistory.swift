@@ -12,6 +12,9 @@ public final class ClipboardHistory {
     /// 최신순으로 정렬된 복사 기록 목록.
     public private(set) var items: [String] = []
 
+    /// 히스토리에 저장 가능한 최대 항목 수.
+    ///
+    /// 이 값을 초과하면 가장 오래된 항목부터 제거된다.
     private let maxCount = 10
 
     public init() {}
@@ -22,6 +25,7 @@ public final class ClipboardHistory {
     /// 맨 앞에 삽입한다. 최대 개수 초과 시 가장 오래된 항목을 제거한다.
     public func add(_ text: String) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        // 원본 텍스트 기준 중복 제거 — 클립보드 내용은 정확한 문자열로 관리한다.
         items.removeAll { $0 == text }
         items.insert(text, at: 0)
         if items.count > maxCount {
