@@ -204,7 +204,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 return nil  // ESC 이벤트 소비 (패널이 닫히는 것 방지)
             }
 
-            // Cmd+C: 에디터 텍스트 히스토리 저장
+            // Cmd+C: 에디터 전체 텍스트를 히스토리에 저장.
+            // 선택 텍스트가 아닌 appState.text 전체를 저장하는 것이 의도된 동작이다.
+            // 클립보드에 복사된 실제 내용(선택 텍스트)과 다를 수 있으나,
+            // 이 앱의 사용 맥락(프롬프트 전체 관리)에서 전체 텍스트 기록이 더 유용하다.
             if event.modifierFlags.contains(.command),
                event.charactersIgnoringModifiers == "c" {
                 self.appState.history.add(self.appState.text)

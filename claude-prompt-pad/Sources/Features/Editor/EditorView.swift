@@ -87,6 +87,7 @@ struct EditorView: View {
                 .padding(.vertical, 12)
                 .background(.bar)
             }
+            // 이 너비(400)는 AppDelegate의 PanelWidth.editor와 반드시 일치해야 한다.
             .frame(width: 400, height: 300)
 
             // 히스토리 패널: showingHistory가 true일 때만 표시, 너비는 NSPanel이 제어
