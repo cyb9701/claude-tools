@@ -2,6 +2,7 @@ import Foundation
 import Observation
 import ServiceManagement
 import SwiftUI
+import ClipboardHistoryKit
 
 /// 에디터 앱 전역 상태.
 ///
@@ -31,12 +32,31 @@ final class AppState {
     /// 패널이 열릴 때 AppDelegate에서 false로 리셋하여 버튼이 초기 상태로 돌아오도록 한다.
     var isCopied = false
 
+    /// 히스토리 패널 표시 여부.
+    ///
+    /// true일 때 NSPanel 너비가 560px으로 확장되고 EditorView 우측에 HistoryPanelView가 나타난다.
+    /// AppDelegate의 onToggleHistory 콜백이 패널 리사이즈를 담당하므로 직접 수정하지 않는다.
+    var showingHistory = false
+
+    /// 복사 기록 저장소.
+    ///
+    /// 메모리 only — 앱 종료 시 초기화된다.
+    let history = ClipboardHistory()
+
     /// 패널 닫기 콜백.
     ///
     /// AppDelegate에서 주입하며, 복사 완료 시 EditorView에서 호출하여 패널을 즉시 닫는다.
     /// @Observable 추적 대상이 아니므로 @ObservationIgnored로 표시한다.
     @ObservationIgnored
     var onClosePanel: (() -> Void)?
+
+    /// 히스토리 토글 콜백.
+    ///
+    /// AppDelegate에서 주입하며, 🕐 버튼 클릭 시 NSPanel 리사이즈 후 showingHistory를 변경한다.
+    /// SwiftUI에서 직접 showingHistory를 수정하면 패널 리사이즈보다 UI 갱신이 먼저 일어나므로
+    /// AppDelegate가 순서를 제어한다.
+    @ObservationIgnored
+    var onToggleHistory: (() -> Void)?
 
     /// 로그인 시 자동 실행 여부.
     ///
