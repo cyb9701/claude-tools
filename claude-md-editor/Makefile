@@ -4,6 +4,8 @@ BUNDLE_ID    = com.claudemdeditor.app
 INSTALL_DIR  = $(HOME)/Applications
 APP_BUNDLE   = $(INSTALL_DIR)/$(APP_NAME).app
 BINARY_SRC   = .build/release/$(BINARY_NAME)
+ICON_SRC     = Resources/icon.png
+ICON_ICNS    = $(APP_BUNDLE)/Contents/Resources/AppIcon.icns
 # 빌드 간 코드서명 일관성을 위해 Apple Developer 인증서 사용.
 # 인증서가 없으면 ad-hoc(-) 서명으로 자동 폴백된다.
 # 환경 변수 또는 Makefile.local에서 오버라이드 가능 (개인정보 보호).
@@ -14,7 +16,7 @@ ENTITLEMENTS = ClaudeMDEditor.entitlements
 # Makefile.local이 존재하면 로드하여 CERT_NAME, TEAM_ID 등을 오버라이드한다.
 -include Makefile.local
 
-.PHONY: all build install update uninstall run clean help _codesign
+.PHONY: all build install update uninstall run clean help _codesign _icon
 
 # ─── 기본 타겟 ────────────────────────────────────────────
 all: help
@@ -39,6 +41,30 @@ build:
 	@echo "✓ 빌드 완료: $(BINARY_SRC)"
 
 # ─── 공통 내부 타겟 ──────────────────────────────────────
+## PNG → ICNS 변환 후 번들 Resources에 복사 (sips + iconutil 사용)
+## Resources/icon.png 가 없으면 조용히 건너뜀
+_icon:
+	@if [ -f "$(ICON_SRC)" ]; then \
+		echo "▶ 아이콘 변환 중..."; \
+		ICONSET=/tmp/ClaudeMDEditor.iconset; \
+		rm -rf "$$ICONSET" && mkdir "$$ICONSET"; \
+		sips -z 16 16     "$(ICON_SRC)" --out "$$ICONSET/icon_16x16.png"      > /dev/null; \
+		sips -z 32 32     "$(ICON_SRC)" --out "$$ICONSET/icon_16x16@2x.png"   > /dev/null; \
+		sips -z 32 32     "$(ICON_SRC)" --out "$$ICONSET/icon_32x32.png"      > /dev/null; \
+		sips -z 64 64     "$(ICON_SRC)" --out "$$ICONSET/icon_32x32@2x.png"   > /dev/null; \
+		sips -z 128 128   "$(ICON_SRC)" --out "$$ICONSET/icon_128x128.png"    > /dev/null; \
+		sips -z 256 256   "$(ICON_SRC)" --out "$$ICONSET/icon_128x128@2x.png" > /dev/null; \
+		sips -z 256 256   "$(ICON_SRC)" --out "$$ICONSET/icon_256x256.png"    > /dev/null; \
+		sips -z 512 512   "$(ICON_SRC)" --out "$$ICONSET/icon_256x256@2x.png" > /dev/null; \
+		sips -z 512 512   "$(ICON_SRC)" --out "$$ICONSET/icon_512x512.png"    > /dev/null; \
+		sips -z 1024 1024 "$(ICON_SRC)" --out "$$ICONSET/icon_512x512@2x.png" > /dev/null; \
+		iconutil -c icns "$$ICONSET" -o "$(ICON_ICNS)"; \
+		rm -rf "$$ICONSET"; \
+		echo "✓ 아이콘 적용 완료: $(ICON_ICNS)"; \
+	else \
+		echo "⚠ $(ICON_SRC) 없음 — 기본 아이콘 사용"; \
+	fi
+
 ## Apple Developer 인증서로 코드서명, 미존재 시 ad-hoc 폴백
 _codesign:
 	@codesign --force --deep \
@@ -55,6 +81,7 @@ install: build
 	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
 	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(BINARY_NAME)"
 	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	@$(MAKE) _icon
 	@$(MAKE) _codesign
 	@echo ""
 	@echo "✅ 설치 완료!"
@@ -74,6 +101,7 @@ update: build
 	@sleep 0.5
 	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(BINARY_NAME)"
 	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	@$(MAKE) _icon
 	@$(MAKE) _codesign
 	@open "$(APP_BUNDLE)"
 	@echo "✅ 업데이트 완료"

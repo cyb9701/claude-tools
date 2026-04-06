@@ -71,6 +71,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupStatusItem()
         setupPanel()
         setupKeyboardShortcut()
+        // 복사 버튼 클릭 시 패널이 즉시 닫히도록 콜백 주입.
+        appState.onClosePanel = { [weak self] in
+            self?.panel?.orderOut(nil)
+        }
     }
 
     // MARK: - 설정

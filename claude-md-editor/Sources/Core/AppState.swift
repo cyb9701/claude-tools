@@ -26,8 +26,12 @@ final class AppState {
         didSet { UserDefaults.standard.set(text, forKey: Keys.editorText) }
     }
 
-    /// 복사 완료 후 버튼 피드백을 1초간 표시하기 위한 상태.
-    var copySuccess: Bool = false
+    /// 패널 닫기 콜백.
+    ///
+    /// AppDelegate에서 주입하며, 복사 완료 시 EditorView에서 호출하여 패널을 즉시 닫는다.
+    /// @Observable 추적 대상이 아니므로 @ObservationIgnored로 표시한다.
+    @ObservationIgnored
+    var onClosePanel: (() -> Void)?
 
     /// 로그인 시 자동 실행 여부.
     ///

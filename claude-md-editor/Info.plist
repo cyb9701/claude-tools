@@ -25,5 +25,8 @@
     <true/>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
+    <!-- .icns 확장자 없이 기입. macOS가 자동으로 Contents/Resources/AppIcon.icns를 로드한다 -->
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 </dict>
 </plist>
