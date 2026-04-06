@@ -13,10 +13,11 @@ final class AppState {
 
     /// 에디터 텍스트.
     ///
-    /// @AppStorage를 통해 UserDefaults에 자동 저장된다.
-    /// @ObservationIgnored로 표시하여 @Observable 추적 충돌을 방지한다.
-    @ObservationIgnored
-    @AppStorage("editorText") var text: String = ""
+    /// UserDefaults에 직접 저장하여 @Observable 추적을 유지한다.
+    /// @ObservationIgnored + @AppStorage 조합은 programmatic 변경 시 UI 갱신이 누락되므로 didSet 방식으로 대체한다.
+    var text: String = UserDefaults.standard.string(forKey: "editorText") ?? "" {
+        didSet { UserDefaults.standard.set(text, forKey: "editorText") }
+    }
 
     /// 복사 완료 후 버튼 피드백을 1초간 표시하기 위한 상태.
     var copySuccess: Bool = false
