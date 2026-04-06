@@ -15,7 +15,8 @@
 
 | 도구 | 설명 |
 |------|------|
-| [**ClaudeUsageBar**](./claude-usage-bar) | Claude Pro/Max 사용량을 실시간으로 모니터링하는 macOS 네이티브 메뉴바 앱. 별도 로그인 없이 Claude Code CLI의 Keychain 토큰을 자동으로 재사용합니다. |
+| [**Claude UsageBar**](./claude-usage-bar) | Claude Pro/Max 사용량을 실시간으로 모니터링하는 macOS 네이티브 메뉴바 앱. 별도 로그인 없이 Claude Code CLI의 Keychain 토큰을 자동으로 재사용합니다. |
+| [**Claude PromptPad**](./claude-prompt-pad) | 글로벌 단축키로 프롬프트를 작성하고 터미널에 한 번에 붙여넣는 macOS 메뉴바 프롬프트 에디터. |
 
 ## 라이선스
 

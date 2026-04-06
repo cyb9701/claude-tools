@@ -13,9 +13,10 @@ Each tool is independently installable and works with Claude Code CLI or the Cla
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| [**ClaudeUsageBar**](./claude-usage-bar) | Native macOS menu bar app to monitor Claude Pro/Max usage in real time. No separate login required — reuses Claude Code CLI's Keychain token automatically. |
+| Tool                                          | Description                                                                                                                                                 |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [**Claude UsageBar**](./claude-usage-bar)     | Native macOS menu bar app to monitor Claude Pro/Max usage in real time. No separate login required — reuses Claude Code CLI's Keychain token automatically. |
+| [**Claude PromptPad**](./claude-prompt-pad)   | macOS menu bar prompt editor — write multi-line prompts with a global shortcut and paste them into the terminal in one shot.                                 |
 
 ## License
 
