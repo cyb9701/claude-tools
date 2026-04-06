@@ -5,7 +5,12 @@
       "WebSearch",
       "Bash(make update:*)",
       "Bash(swift build:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git add:*)",
+      "Bash(git commit -m 'feat: redesign panel positioning, shortcut settings window, and native macOS styling:*)",
+      "Bash(git commit -m 'feat: add app icon support, auto-close panel on copy, remove copy feedback:*)",
+      "Bash(make -C claude-md-editor uninstall)",
+      "Bash(git mv:*)"
     ]
   }
 }

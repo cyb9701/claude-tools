@@ -9,6 +9,7 @@ struct EditorView: View {
 
     @Environment(AppState.self) private var appState
 
+
     /// 현재 텍스트의 줄 수.
     private var lineCount: Int {
         appState.text.isEmpty ? 0 : appState.text.components(separatedBy: "\n").count
@@ -52,21 +53,27 @@ struct EditorView: View {
                     appState.text = ""
                 }
                 .buttonStyle(.bordered)
+                .controlSize(.large)
 
                 // 클립보드 복사 버튼 (전체 너비).
-                // 복사 완료 즉시 패널을 닫아 터미널로 바로 전환할 수 있도록 한다.
+                // 복사 후 "복사됨!" 피드백을 0.6초 보여준 뒤 패널을 닫는다.
                 Button {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(appState.text, forType: .string)
-                    appState.onClosePanel?()
+                    appState.isCopied = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        appState.onClosePanel?()
+                    }
                 } label: {
-                    Text("클립보드에 복사")
+                    Text(appState.isCopied ? "복사됨!" : "클립보드에 복사")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(appState.isCopied)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
             .background(.bar)
         }
         .frame(width: 400, height: 300)

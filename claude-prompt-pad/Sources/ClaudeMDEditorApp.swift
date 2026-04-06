@@ -214,6 +214,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if panel?.isVisible == true {
             panel?.orderOut(nil)
         } else {
+            // 패널을 열기 전에 복사 완료 상태를 초기화한다.
+            appState.isCopied = false
             positionPanelBelowStatusItem()
             panel?.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)

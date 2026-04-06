@@ -26,6 +26,11 @@ final class AppState {
         didSet { UserDefaults.standard.set(text, forKey: Keys.editorText) }
     }
 
+    /// 복사 완료 상태.
+    ///
+    /// 패널이 열릴 때 AppDelegate에서 false로 리셋하여 버튼이 초기 상태로 돌아오도록 한다.
+    var isCopied = false
+
     /// 패널 닫기 콜백.
     ///
     /// AppDelegate에서 주입하며, 복사 완료 시 EditorView에서 호출하여 패널을 즉시 닫는다.
