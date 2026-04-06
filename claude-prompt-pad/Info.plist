@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>ClaudeMDEditor</string>
+    <string>ClaudePromptPad</string>
     <key>CFBundleIdentifier</key>
-    <string>com.claudemdeditor.app</string>
+    <string>com.claudepromptpad.app</string>
     <key>CFBundleName</key>
-    <string>Claude MD Editor</string>
+    <string>Claude PromptPad</string>
     <key>CFBundleDisplayName</key>
-    <string>Claude MD Editor</string>
+    <string>Claude PromptPad</string>
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>

@@ -18,7 +18,7 @@ extension KeyboardShortcuts.Name {
 /// SwiftUI App 프로토콜은 최소화하고, 모든 UI 제어는 AppDelegate에 위임한다.
 /// Settings Scene은 "앱에 Scene이 없음" 경고를 방지하기 위한 최소 구성이다.
 @main
-struct ClaudeMDEditorApp: App {
+struct ClaudePromptPadApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
     var body: some Scene {
@@ -85,7 +85,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         button.image = NSImage(
             systemSymbolName: "text.page.fill",
-            accessibilityDescription: "Claude MD Editor"
+            accessibilityDescription: "Claude PromptPad"
         )
         // 좌클릭과 우클릭 이벤트를 모두 수신
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])

@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "ClaudeMDEditor",
+    name: "ClaudePromptPad",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/sindresorhus/KeyboardShortcuts", from: "2.0.0")
     ],
     targets: [
         .executableTarget(
-            name: "ClaudeMDEditor",
+            name: "ClaudePromptPad",
             dependencies: ["KeyboardShortcuts"],
             path: "Sources",
             // @main 어트리뷰트가 SPM 실행 파일에서 동작하도록

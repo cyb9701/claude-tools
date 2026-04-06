@@ -25,7 +25,7 @@ struct EditorView: View {
         VStack(spacing: 0) {
             // 상단 타이틀바: macOS .bar 소재를 사용해 시스템 배경과 자연스럽게 통합
             HStack {
-                Text("Claude MD Editor")
+                Text("Claude PromptPad")
                     .font(.headline)
                 Spacer()
                 Text("\(lineCount)줄 · \(charCount)자")

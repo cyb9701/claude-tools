@@ -1,6 +1,6 @@
-APP_NAME     = Claude MD Editor
-BINARY_NAME  = ClaudeMDEditor
-BUNDLE_ID    = com.claudemdeditor.app
+APP_NAME     = Claude PromptPad
+BINARY_NAME  = ClaudePromptPad
+BUNDLE_ID    = com.claudepromptpad.app
 INSTALL_DIR  = $(HOME)/Applications
 APP_BUNDLE   = $(INSTALL_DIR)/$(APP_NAME).app
 BINARY_SRC   = .build/release/$(BINARY_NAME)
@@ -11,7 +11,7 @@ ICON_ICNS    = $(APP_BUNDLE)/Contents/Resources/AppIcon.icns
 # 환경 변수 또는 Makefile.local에서 오버라이드 가능 (개인정보 보호).
 CERT_NAME    ?= $(CODESIGN_CERT_NAME)
 TEAM_ID      ?= $(CODESIGN_TEAM_ID)
-ENTITLEMENTS = ClaudeMDEditor.entitlements
+ENTITLEMENTS = ClaudePromptPad.entitlements
 
 # Makefile.local이 존재하면 로드하여 CERT_NAME, TEAM_ID 등을 오버라이드한다.
 -include Makefile.local
@@ -24,7 +24,7 @@ all: help
 ## 도움말 출력
 help:
 	@echo ""
-	@echo "Claude MD Editor — 마크다운 에디터 메뉴바 앱"
+	@echo "Claude PromptPad — AI 프롬프트 작성 메뉴바 앱"
 	@echo ""
 	@echo "  make install    빌드 후 ~/Applications 에 설치 (최초 1회)"
 	@echo "  make update     재빌드 후 기존 설치 업데이트"
@@ -46,7 +46,7 @@ build:
 _icon:
 	@if [ -f "$(ICON_SRC)" ]; then \
 		echo "▶ 아이콘 변환 중..."; \
-		ICONSET=/tmp/ClaudeMDEditor.iconset; \
+		ICONSET=/tmp/ClaudePromptPad.iconset; \
 		rm -rf "$$ICONSET" && mkdir "$$ICONSET"; \
 		sips -z 16 16     "$(ICON_SRC)" --out "$$ICONSET/icon_16x16.png"      > /dev/null; \
 		sips -z 32 32     "$(ICON_SRC)" --out "$$ICONSET/icon_16x16@2x.png"   > /dev/null; \
@@ -90,7 +90,7 @@ install: build
 	@echo "  open $(APP_BUNDLE)"
 	@echo ""
 	@echo "로그인 시 자동 실행 설정:"
-	@echo "  시스템 설정 → 일반 → 로그인 항목 → Claude MD Editor 추가"
+	@echo "  시스템 설정 → 일반 → 로그인 항목 → Claude PromptPad 추가"
 	@echo ""
 	@open "$(APP_BUNDLE)"
 
