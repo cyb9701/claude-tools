@@ -2,6 +2,22 @@ import SwiftUI
 import Observation
 import ServiceManagement
 
+// MARK: - 의존성 프로토콜
+
+/// Pro 사용량 조회 추상화.
+///
+/// 테스트 시 Mock 주입이 가능하도록 프로토콜로 분리한다.
+protocol UsageFetching: Sendable {
+    func fetchUsage() async throws -> ClaudeUsageData
+}
+
+/// OTel 메트릭 폴링 추상화.
+///
+/// 테스트 시 Mock 주입이 가능하도록 프로토콜로 분리한다.
+protocol MetricsPolling: Sendable {
+    func poll() async -> CodeUsageMetrics?
+}
+
 /// 앱 전역 상태 관리자.
 ///
 /// @Observable을 사용하여 SwiftUI 뷰와 자동으로 동기화된다.
@@ -17,6 +33,8 @@ final class AppState {
     var codeMetrics: CodeUsageMetrics?
     var lastUpdated: Date?
     var errorMessage: String?
+    /// 네트워크 오류 여부 (에러 뷰에서 로그인 안내 표시 판별용).
+    var isNetworkError = false
     var isLoading = false
     var isOTelAvailable = false
 
@@ -41,8 +59,8 @@ final class AppState {
 
     // MARK: - 의존성
 
-    private let usageFetcher = OAuthUsageFetcher()
-    private let prometheusPoller = PrometheusPoller()
+    private let usageFetcher: UsageFetching
+    private let metricsPoller: MetricsPolling
 
     // MARK: - 타이머
 
@@ -51,12 +69,36 @@ final class AppState {
 
     // MARK: - 초기화
 
-    init() {
+    /// 의존성 주입을 통해 테스트 용이성을 확보한다.
+    ///
+    /// 프로덕션에서는 기본 구현체(OAuthUsageFetcher, PrometheusPoller)를 사용하고,
+    /// 테스트에서는 Mock 객체를 주입할 수 있다.
+    init(
+        usageFetcher: UsageFetching = OAuthUsageFetcher(),
+        metricsPoller: MetricsPolling = PrometheusPoller()
+    ) {
+        self.usageFetcher = usageFetcher
+        self.metricsPoller = metricsPoller
         startTimers()
         Task { @MainActor in
             await performStartupRefreshWithBackoff()
         }
     }
+
+    deinit {
+        refreshTimer?.invalidate()
+        otelTimer?.invalidate()
+    }
+
+    // MARK: - 상수
+
+    /// 부팅 후 재시도 백오프 간격.
+    ///
+    /// WiFi 연결, FileVault 잠금 해제 등 macOS 부팅 환경의
+    /// 지연을 고려하여 점진적으로 대기 시간을 늘린다.
+    private static let startupBackoffDelays: [Duration] = [
+        .seconds(2), .seconds(5), .seconds(15), .seconds(30)
+    ]
 
     // MARK: - 공개 메서드
 
@@ -64,14 +106,14 @@ final class AppState {
     ///
     /// macOS 부팅 환경(WiFi 지연, FileVault 잠금 해제 등)에서는
     /// Keychain과 네트워크가 준비되기까지 시간이 걸릴 수 있다.
-    /// 1s 초기 대기 후 실패 시 2s → 5s → 15s → 30s 순서로 최대 4회 재시도한다.
+    /// 1s 초기 대기 후 실패 시 startupBackoffDelays 순서로 최대 4회 재시도한다.
     private func performStartupRefreshWithBackoff() async {
         try? await Task.sleep(for: .seconds(1))
         await refresh()
         await pollOTel()
         guard fiveHourUsage == nil else { return }
 
-        for delay: Duration in [.seconds(2), .seconds(5), .seconds(15), .seconds(30)] {
+        for delay in Self.startupBackoffDelays {
             try? await Task.sleep(for: delay)
             await refresh()
             if fiveHourUsage != nil { return }
@@ -90,11 +132,19 @@ final class AppState {
                 sevenDaySonnetUsage = data.sevenDaySonnet
                 lastUpdated = data.fetchedAt
                 errorMessage = nil
+                isNetworkError = false
                 isLoading = false
             }
         } catch {
+            let networkError: Bool
+            if case ClaudeUsageError.tokenRefreshNetworkError = error {
+                networkError = true
+            } else {
+                networkError = false
+            }
             await MainActor.run {
                 errorMessage = error.localizedDescription
+                isNetworkError = networkError
                 isLoading = false
             }
         }
@@ -103,7 +153,7 @@ final class AppState {
     // MARK: - Private
 
     private func pollOTel() async {
-        let metrics = await prometheusPoller.poll()
+        let metrics = await metricsPoller.poll()
         await MainActor.run {
             codeMetrics = metrics
             isOTelAvailable = metrics != nil
@@ -128,6 +178,10 @@ final class AppState {
 extension AppState {
 
     /// 메뉴바 아이콘 색상 (5시간 윈도우 사용률 기반).
+    ///
+    /// 50% 미만: 여유 (green), 50~80%: 주의 (yellow), 80% 이상: 경고 (red).
+    /// 사용자가 rate limit 도달 전에 사용량을 인지할 수 있도록
+    /// 80%부터 빨간색으로 전환한다.
     var statusColor: Color {
         guard let ratio = fiveHourUsage?.ratio else { return .gray }
         switch ratio {

@@ -88,15 +88,15 @@ struct MenuBarView: View {
                 Spacer()
                 Text("\(window.percentInt)%")
                     .font(.system(size: 12, weight: .semibold).monospacedDigit())
-                    .foregroundStyle(progressColor(for: window.ratio))
+                    .foregroundStyle(DisplayFormatters.progressColor(for: window.ratio))
             }
 
             ProgressView(value: window.ratio)
-                .tint(progressColor(for: window.ratio))
+                .tint(DisplayFormatters.progressColor(for: window.ratio))
                 .frame(height: 6)
                 .scaleEffect(x: 1, y: 1.2, anchor: .center)
 
-            if let subtitle = resetLabel(for: window) {
+            if let subtitle = DisplayFormatters.resetLabel(for: window) {
                 Text(subtitle)
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
@@ -113,7 +113,7 @@ struct MenuBarView: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                chip(value: formatTokens(m.inputTokens + m.outputTokens), label: "tokens")
+                chip(value: DisplayFormatters.formatTokens(m.inputTokens + m.outputTokens), label: "tokens")
                 chip(value: String(format: "$%.3f", m.costUSD), label: "cost")
                 chip(value: "\(Int(m.sessionCount))", label: "sessions")
             }
@@ -152,7 +152,8 @@ struct MenuBarView: View {
             }
 
             // 네트워크 오류 시에는 로그인 안내가 부적절하므로 표시하지 않는다.
-            if !(state.errorMessage?.contains("네트워크") ?? false) {
+            // 에러 타입(isNetworkError)으로 판별하여 문자열 비교의 취약성을 제거한다.
+            if !state.isNetworkError {
                 Text("Please run Claude Code and sign in first.")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
@@ -183,7 +184,7 @@ struct MenuBarView: View {
 
             HStack {
                 if let updated = state.lastUpdated {
-                    Text(relativeTime(from: updated))
+                    Text(DisplayFormatters.relativeTime(from: updated))
                         .font(.system(size: 11))
                         .foregroundStyle(.tertiary)
                 } else {
@@ -202,66 +203,6 @@ struct MenuBarView: View {
         .padding(.vertical, 12)
     }
 
-    // MARK: - 헬퍼
-
-    private func progressColor(for ratio: Double) -> Color {
-        switch ratio {
-        case ..<0.5: return .green
-        case ..<0.8: return .yellow
-        default: return .red
-        }
-    }
-
-    /// 리셋 시각을 Asia/Seoul 타임존의 절대시간으로 표시한다.
-    ///
-    /// 오늘이면 "Resets 2pm (Asia/Seoul)", 내일 이후이면 "Resets Apr 4 at 11pm (Asia/Seoul)".
-    private func resetLabel(for window: RateWindow) -> String? {
-        guard let resetAt = window.resetAt else { return nil }
-        guard let seconds = window.secondsUntilReset, seconds > 0 else { return "Reset" }
-
-        let seoul = TimeZone(identifier: "Asia/Seoul")!
-        let now = Date()
-
-        let formatter = DateFormatter()
-        formatter.timeZone = seoul
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-
-        // Seoul 타임존 기준으로 오늘인지 판별
-        var seoulCalendar = Calendar.current
-        seoulCalendar.timeZone = seoul
-        let isToday = seoulCalendar.isDate(resetAt, inSameDayAs: now)
-        let isTomorrow = seoulCalendar.isDateInTomorrow(resetAt)
-
-        formatter.dateFormat = "ha"
-        let timeStr = formatter.string(from: resetAt).lowercased()
-
-        if isToday || isTomorrow {
-            return "Resets \(timeStr) (Asia/Seoul)"
-        } else {
-            let dayFormatter = DateFormatter()
-            dayFormatter.timeZone = seoul
-            dayFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dayFormatter.dateFormat = "MMM d"
-            let dayStr = dayFormatter.string(from: resetAt)
-            return "Resets \(dayStr) at \(timeStr) (Asia/Seoul)"
-        }
-    }
-
-    /// 마지막 갱신 시각의 상대 시간 표시.
-    private func relativeTime(from date: Date) -> String {
-        let diff = Int(Date().timeIntervalSince(date))
-        if diff < 60 { return "Updated just now" }
-        if diff < 3600 { return "Updated \(diff / 60)m ago" }
-        return "Updated \(diff / 3600)h ago"
-    }
-
-    private func formatTokens(_ tokens: Double) -> String {
-        switch tokens {
-        case 1_000_000...: return String(format: "%.1fM", tokens / 1_000_000)
-        case 1_000...: return String(format: "%.1fK", tokens / 1_000)
-        default: return "\(Int(tokens))"
-        }
-    }
 }
 
 // MARK: - 메뉴바 라벨 뷰

@@ -7,13 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `DisplayFormatters` enum for centralized formatting logic (SRP separation from `MenuBarView`)
+- `UsageFetching` and `MetricsPolling` protocols for dependency inversion (DIP) in `AppState`
+- `isNetworkError` flag on `AppState` for type-safe error classification in views
+- `Makefile.local` support — local cert/team credentials separated from version-controlled `Makefile`
+
 ### Changed
 - Popover background changed to native macOS menu bar style (removed per-section glass cards, using system dividers)
 - UI labels switched to English: "Current session", "Current week (all models)", "Current week (Sonnet only)"
 - Reset time now shows absolute time in Asia/Seoul timezone (e.g., "Resets 2pm (Asia/Seoul)")
 - README.md simplified to essentials (description, install, update)
+- `Makefile` cert/team values now use environment variable overrides (`?=`) instead of hardcoded strings
+- `URLSession` and `ISO8601DateFormatter` reused as instance/static properties instead of per-call allocation
+- Startup backoff delay values extracted to named constant `startupBackoffDelays`
+- Environment variable token fallback (`CLAUDE_CODE_OAUTH_TOKEN`) restricted to `#if DEBUG` builds only
+- Error message length capped at 100 characters to prevent oversized UI states
+- Network error detection in `MenuBarView` uses `state.isNetworkError` flag instead of string matching
 
 ### Fixed
+- `Timer` resources now properly invalidated in `AppState.deinit` — prevents duplicate timer leak on restart
+- Prometheus metric parsing now correctly extracts the value token (index 1), avoiding timestamp misparse
+- URL query parameters use `URLComponents` percent-encoding instead of raw string interpolation
 - "Updated just now" text no longer stuck — footer now properly re-renders every second via `tickCount` dependency
 - App now auto-fetches usage data on launch with retry (1s delay + retry on failure)
 - Reduced Keychain access frequency to mitigate repeated password prompt — cached refresh token is used for HTTP renewal before falling back to Keychain

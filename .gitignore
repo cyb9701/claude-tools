@@ -147,3 +147,6 @@ xcuserdata
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/swift,macos,swiftpackagemanager,swiftpm,visualstudiocode
+
+# 로컬 전용 빌드 설정 (인증서명, Team ID 등 개인정보 포함)
+Makefile.local

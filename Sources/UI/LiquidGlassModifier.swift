@@ -1,5 +1,9 @@
 import SwiftUI
 
+// NOTE: 현재 MenuBarView에서는 직접 사용되지 않는다.
+// macOS 26 정식 출시 후 MenuBarExtra 팝오버에 Liquid Glass를 적용할 때 활용 예정.
+// MenuBarView의 chip(), proUsageSection 등에서 .glassCard(), .glassChip()으로 교체 가능.
+
 extension View {
 
     /// 카드 형태의 glass 배경 적용.

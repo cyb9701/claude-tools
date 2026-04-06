@@ -60,3 +60,43 @@
 [debug] [2026-04-02T00:37:38.564Z] > authorizing via signed-in user (tech@ireading.co.kr)
 [debug] [2026-04-02T00:39:03.823Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
 [debug] [2026-04-02T00:39:03.824Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.020Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.021Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.021Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.022Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.030Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.030Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.041Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.041Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.042Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.042Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.042Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.043Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:34:06.043Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:34:06.043Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T01:35:32.709Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T01:35:32.711Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.204Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.206Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.206Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.206Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.215Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.215Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.225Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.225Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.226Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.226Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.227Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.227Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:31.227Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:31.227Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:33.111Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:33.112Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:41.342Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:41.342Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:41.342Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:41.342Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:41.343Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:41.343Z] > authorizing via signed-in user (tech@ireading.co.kr)
+[debug] [2026-04-06T02:22:41.343Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T02:22:41.344Z] > authorizing via signed-in user (tech@ireading.co.kr)

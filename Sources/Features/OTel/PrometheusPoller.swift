@@ -5,9 +5,16 @@ import Foundation
 /// Claude Code에 CLAUDE_CODE_ENABLE_TELEMETRY=1, OTEL_METRICS_EXPORTER=prometheus를
 /// 설정하면 localhost:9464/metrics 에 HTTP 서버가 자동 기동된다.
 /// 이 클래스는 해당 엔드포인트를 폴링하여 Claude Code CLI 사용 메트릭을 수집한다.
-final class PrometheusPoller {
+final class PrometheusPoller: MetricsPolling, @unchecked Sendable {
 
     private let metricsURL = URL(string: "http://localhost:9464/metrics")!
+
+    /// URLSession을 재사용하여 1분 주기 폴링 시 세션 생성 비용을 절감한다.
+    private let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 3 // Claude Code 미실행 시 빠른 실패
+        return URLSession(configuration: config)
+    }()
 
     // MARK: - 공개 메서드
 
@@ -21,10 +28,6 @@ final class PrometheusPoller {
 
     private func fetchMetricsText() async -> String? {
         do {
-            let config = URLSessionConfiguration.default
-            config.timeoutIntervalForRequest = 3 // Claude Code 미실행 시 빠른 실패
-            let session = URLSession(configuration: config)
-
             let (data, response) = try await session.data(from: metricsURL)
             guard (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
             return String(data: data, encoding: .utf8)
@@ -82,15 +85,16 @@ final class PrometheusPoller {
 
     /// Prometheus 메트릭 줄에서 숫자 값 추출.
     ///
-    /// 형식: metric_name{labels} value timestamp
+    /// 형식: "metric_name{labels} value [timestamp]"
+    /// 타임스탬프는 선택적이므로, 라벨(중괄호 또는 메트릭명) 뒤 첫 번째 숫자 토큰이
+    /// 항상 값이다. 타임스탬프가 존재해도 값을 정확히 추출한다.
     private func extractValue(from line: String) -> Double {
-        // 마지막 공백 이전의 토큰이 값
-        let parts = line.components(separatedBy: " ")
-        guard parts.count >= 2,
-              let value = Double(parts[parts.count - 1].trimmingCharacters(in: .whitespaces))
-                ?? Double(parts[parts.count - 2].trimmingCharacters(in: .whitespaces)) else {
-            return 0
-        }
+        let parts = line.components(separatedBy: " ").filter { !$0.isEmpty }
+        // 최소 "metric_name value" 2개 토큰 필요
+        guard parts.count >= 2 else { return 0 }
+
+        // 첫 번째 토큰은 메트릭명(라벨 포함), 두 번째가 값
+        guard let value = Double(parts[1]) else { return 0 }
         return value
     }
 }

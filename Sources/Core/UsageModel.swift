@@ -90,22 +90,32 @@ struct UsageWindow: Decodable {
         case resetsAt = "resets_at"
     }
 
+    // ISO8601DateFormatter 생성 비용이 높으므로 static으로 재사용한다.
+    // API 응답마다 최대 3회(fiveHour, sevenDay, sevenDaySonnet) 호출되므로
+    // 매번 생성하면 불필요한 할당이 반복된다.
+
+    /// "2026-03-31T05:00:01.160872+00:00" 소수초 포함 형식용.
+    private static let isoFormatterWithFractional: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    /// "2026-03-31T05:00:01Z" 소수초 미포함 형식용.
+    private static let isoFormatterBasic: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
     /// ISO 8601 + timezone 문자열을 Date로 변환하여 RateWindow 생성.
     func toRateWindow() -> RateWindow? {
         guard let utilization else { return nil }
 
         var resetDate: Date?
         if let resetsAt {
-            // "2026-03-31T05:00:01.160872+00:00" 형식 파싱
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-            resetDate = formatter.date(from: resetsAt)
-
-            // fractionalSeconds 없는 경우 재시도
-            if resetDate == nil {
-                formatter.formatOptions = [.withInternetDateTime]
-                resetDate = formatter.date(from: resetsAt)
-            }
+            resetDate = Self.isoFormatterWithFractional.date(from: resetsAt)
+                ?? Self.isoFormatterBasic.date(from: resetsAt)
         }
 
         return RateWindow(ratio: utilization / 100.0, resetAt: resetDate)
@@ -136,7 +146,8 @@ enum ClaudeUsageError: LocalizedError {
         case .tokenRefreshNetworkError:
             return "네트워크 연결을 확인해주세요. 잠시 후 자동으로 재시도합니다."
         case .apiError(let code, let message):
-            return "API 오류 \(code): \(message)"
+            // 서버 응답에 내부 경로나 디버그 정보가 포함될 수 있으므로 길이를 제한한다.
+            return "API 오류 \(code): \(String(message.prefix(100)))"
         case .unexpectedResponseFormat(let raw):
             return "예상치 못한 응답 형식: \(raw.prefix(200))"
         }

@@ -9,7 +9,7 @@ import Foundation
 /// 실제 응답 구조:
 /// { "five_hour": { "utilization": 50.0, "resets_at": "..." },
 ///   "seven_day": { "utilization": 45.0, "resets_at": "..." }, ... }
-final class OAuthUsageFetcher {
+final class OAuthUsageFetcher: UsageFetching, @unchecked Sendable {
 
     private let tokenManager = OAuthTokenManager.shared
     private let session: URLSession

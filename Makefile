@@ -1,15 +1,24 @@
-APP_NAME    = ClaudeUsageBar
-BUNDLE_ID   = com.claudeusagebar.app
-INSTALL_DIR = $(HOME)/Applications
-APP_BUNDLE  = $(INSTALL_DIR)/$(APP_NAME).app
-BINARY_SRC  = .build/release/$(APP_NAME)
-ICON_SRC    = Sources/icon_app.png
-ICONSET_DIR = /tmp/AppIcon.iconset
-ICNS_FILE   = /tmp/AppIcon.icns
+APP_NAME     = ClaudeUsageBar
+BUNDLE_ID    = com.claudeusagebar.app
+INSTALL_DIR  = $(HOME)/Applications
+APP_BUNDLE   = $(INSTALL_DIR)/$(APP_NAME).app
+BINARY_SRC   = .build/release/$(APP_NAME)
+ICON_SRC     = Sources/icon_app.png
+ICONSET_DIR  = /tmp/AppIcon.iconset
+ICNS_FILE    = /tmp/AppIcon.icns
+# 빌드 간 코드서명 일관성을 위해 Apple Developer 인증서 사용.
+# 인증서가 없으면 ad-hoc(-) 서명으로 자동 폴백된다.
+# 환경 변수 또는 Makefile.local에서 오버라이드 가능 (개인정보 보호).
+CERT_NAME    ?= $(CODESIGN_CERT_NAME)
+TEAM_ID      ?= $(CODESIGN_TEAM_ID)
+ENTITLEMENTS = ClaudeUsageBar.entitlements
+
+# Makefile.local이 존재하면 로드하여 CERT_NAME, TEAM_ID 등을 오버라이드한다.
+-include Makefile.local
 
 # ─── 기본 타겟 ────────────────────────────────────────────
 
-.PHONY: all build install uninstall run clean help
+.PHONY: all build install update uninstall run clean help setup-keychain _icon _codesign
 
 all: help
 
@@ -18,11 +27,12 @@ help:
 	@echo ""
 	@echo "ClaudeUsageBar — Claude 사용량 메뉴바 앱"
 	@echo ""
-	@echo "  make install    빌드 후 ~/Applications 에 설치 (최초 1회)"
-	@echo "  make update     재빌드 후 기존 설치 업데이트"
-	@echo "  make run        빌드 후 터미널에서 직접 실행 (개발용)"
-	@echo "  make uninstall  ~/Applications 에서 삭제"
-	@echo "  make clean      빌드 캐시 삭제"
+	@echo "  make install         빌드 후 ~/Applications 에 설치 (최초 1회)"
+	@echo "  make update          재빌드 후 기존 설치 업데이트"
+	@echo "  make setup-keychain  Keychain ACL 초기 설정 (최초 1회, 팝업 영구 해결)"
+	@echo "  make run             빌드 후 터미널에서 직접 실행 (개발용)"
+	@echo "  make uninstall       ~/Applications 에서 삭제"
+	@echo "  make clean           빌드 캐시 삭제"
 	@echo ""
 
 # ─── 빌드 ────────────────────────────────────────────────
@@ -33,16 +43,10 @@ build:
 	@swift build -c release
 	@echo "✓ 빌드 완료: $(BINARY_SRC)"
 
-# ─── 설치 ────────────────────────────────────────────────
+# ─── 공통 내부 타겟 ──────────────────────────────────────
 
-## .app 번들 생성 후 ~/Applications 에 설치
-install: build
-	@echo "▶ 설치 중: $(APP_BUNDLE)"
-	@mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
-	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
-	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
-	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
-	@# PNG → ICNS 변환 후 Resources 에 복사
+## PNG → ICNS 변환 후 Resources 에 복사 (install, update 공용)
+_icon:
 	@echo "▶ 아이콘 변환 중..."
 	@rm -rf "$(ICONSET_DIR)" && mkdir -p "$(ICONSET_DIR)"
 	@sips -z 16   16   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16.png"      2>/dev/null
@@ -58,8 +62,44 @@ install: build
 	@iconutil -c icns "$(ICONSET_DIR)" -o "$(ICNS_FILE)"
 	@cp "$(ICNS_FILE)" "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
 	@echo "✓ 아이콘 적용 완료"
-	@# 코드 서명 (자체 서명 — App Store 외 배포)
-	@codesign --force --deep --sign - "$(APP_BUNDLE)" 2>/dev/null || true
+
+## Apple Developer 인증서로 코드서명, 미존재 시 ad-hoc 폴백 (install, update 공용)
+_codesign:
+	@codesign --force --deep \
+	    --sign "$(CERT_NAME)" \
+	    --entitlements "$(ENTITLEMENTS)" \
+	    "$(APP_BUNDLE)" 2>/dev/null || \
+	  codesign --force --deep --sign - "$(APP_BUNDLE)" 2>/dev/null || true
+
+# ─── Keychain ACL 설정 ───────────────────────────────────
+
+## Keychain ACL 초기 설정 (최초 1회 실행)
+##
+## "Claude Code-credentials" 항목의 partition_id에 TeamID를 추가해서
+## make update 이후에도 Keychain 팝업이 재발하지 않도록 한다.
+## 실행 시 macOS 로그인 비밀번호를 한 번 입력해야 한다.
+setup-keychain:
+	@echo "▶ Keychain partition_id 설정 중..."
+	@echo "  (macOS 로그인 비밀번호 입력 팝업이 한 번 나타납니다)"
+	@security set-generic-password-partition-list \
+	    -S "apple-tool:,apple:,teamid:$(TEAM_ID)" \
+	    -s "Claude Code-credentials" \
+	    -a "$$(whoami)" \
+	    ~/Library/Keychains/login.keychain-db && \
+	  echo "✅ 설정 완료: 이후 make update 후에도 Keychain 팝업이 발생하지 않습니다." || \
+	  echo "⚠️  설정 실패: 로그인 비밀번호를 올바르게 입력했는지 확인하세요."
+
+# ─── 설치 ────────────────────────────────────────────────
+
+## .app 번들 생성 후 ~/Applications 에 설치
+install: build
+	@echo "▶ 설치 중: $(APP_BUNDLE)"
+	@mkdir -p "$(APP_BUNDLE)/Contents/MacOS"
+	@mkdir -p "$(APP_BUNDLE)/Contents/Resources"
+	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
+	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
+	@$(MAKE) _icon
+	@$(MAKE) _codesign
 	@echo ""
 	@echo "✅ 설치 완료!"
 	@echo ""
@@ -78,20 +118,8 @@ update: build
 	@sleep 0.5
 	@cp "$(BINARY_SRC)" "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)"
 	@cp Info.plist "$(APP_BUNDLE)/Contents/Info.plist"
-	@rm -rf "$(ICONSET_DIR)" && mkdir -p "$(ICONSET_DIR)"
-	@sips -z 16   16   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16.png"      2>/dev/null
-	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_16x16@2x.png"   2>/dev/null
-	@sips -z 32   32   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32.png"      2>/dev/null
-	@sips -z 64   64   "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_32x32@2x.png"   2>/dev/null
-	@sips -z 128  128  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128.png"    2>/dev/null
-	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_128x128@2x.png" 2>/dev/null
-	@sips -z 256  256  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256.png"    2>/dev/null
-	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_256x256@2x.png" 2>/dev/null
-	@sips -z 512  512  "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512.png"    2>/dev/null
-	@sips -z 1024 1024 "$(ICON_SRC)" --out "$(ICONSET_DIR)/icon_512x512@2x.png" 2>/dev/null
-	@iconutil -c icns "$(ICONSET_DIR)" -o "$(ICNS_FILE)"
-	@cp "$(ICNS_FILE)" "$(APP_BUNDLE)/Contents/Resources/AppIcon.icns"
-	@codesign --force --deep --sign - "$(APP_BUNDLE)" 2>/dev/null || true
+	@$(MAKE) _icon
+	@$(MAKE) _codesign
 	@open "$(APP_BUNDLE)"
 	@echo "✅ 업데이트 완료"
 

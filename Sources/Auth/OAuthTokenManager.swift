@@ -83,7 +83,10 @@ actor OAuthTokenManager {
             return credentials
         }
 
-        // 2순위: 환경변수 (테스트용)
+        // 2순위: 환경변수 (DEBUG 빌드 전용 테스트 폴백).
+        // 릴리즈 빌드에서는 환경변수를 통한 토큰 우회를 차단하여
+        // 의도치 않은 토큰 노출을 방지한다.
+        #if DEBUG
         if let envToken = ProcessInfo.processInfo.environment["CLAUDE_OAUTH_TOKEN"] {
             return OAuthCredentials(
                 accessToken: envToken,
@@ -91,6 +94,7 @@ actor OAuthTokenManager {
                 expiresAt: Date().addingTimeInterval(3600)
             )
         }
+        #endif
 
         throw ClaudeUsageError.credentialsNotFound
     }
@@ -147,8 +151,15 @@ actor OAuthTokenManager {
         )
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-        request.httpBody = "grant_type=refresh_token&refresh_token=\(refreshToken)"
-            .data(using: .utf8)
+
+        // URLComponents를 사용하여 refresh token의 특수문자(+, =, & 등)를
+        // 안전하게 퍼센트 인코딩한다.
+        var bodyComponents = URLComponents()
+        bodyComponents.queryItems = [
+            URLQueryItem(name: "grant_type", value: "refresh_token"),
+            URLQueryItem(name: "refresh_token", value: refreshToken),
+        ]
+        request.httpBody = bodyComponents.percentEncodedQuery?.data(using: .utf8)
 
         let (data, response): (Data, URLResponse)
         do {
@@ -210,7 +221,10 @@ struct OAuthCredentials: Decodable {
 
         // expiresAt: 밀리초 단위 Unix 타임스탬프 (예: 1774950761041)
         if let ms = try? c.decode(Double.self, forKey: .expiresAt) {
-            let seconds = ms > 1_000_000_000_000 ? ms / 1000 : ms
+            // 2001-09-09 이후의 타임스탬프(13자리 이상)는 밀리초 단위로 판별한다.
+            // 초 단위(10자리)와 밀리초 단위(13자리)를 구분하는 경계값.
+            let millisecondsThreshold: Double = 1_000_000_000_000
+            let seconds = ms > millisecondsThreshold ? ms / 1000 : ms
             expiresAt = Date(timeIntervalSince1970: seconds)
         } else if let isoStr = try? c.decode(String.self, forKey: .expiresAt) {
             expiresAt = ISO8601DateFormatter().date(from: isoStr)

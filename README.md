@@ -20,6 +20,10 @@ make install
 
 빌드 후 `~/Applications/ClaudeUsageBar.app`이 자동 생성되고 즉시 실행됩니다.
 
+> **Keychain 팝업이 반복될 경우**: `make setup-keychain`을 한 번 실행하세요.  
+> `"Claude Code-credentials"` 항목에 TeamID ACL을 등록하여 이후 팝업을 영구 차단합니다.  
+> 실행 시 macOS 로그인 비밀번호를 한 번 입력해야 합니다.
+
 ## 업데이트
 
 ```bash
