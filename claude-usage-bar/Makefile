@@ -4,7 +4,7 @@ BUNDLE_ID    = com.claudeusagebar.app
 INSTALL_DIR  = $(HOME)/Applications
 APP_BUNDLE   = $(INSTALL_DIR)/$(APP_NAME).app
 BINARY_SRC   = .build/release/$(BINARY_NAME)
-ICON_SRC     = Sources/icon.png
+ICON_SRC     = Resources/icon.png
 ICONSET_DIR  = /tmp/AppIcon.iconset
 ICNS_FILE    = /tmp/AppIcon.icns
 # 빌드 간 코드서명 일관성을 위해 Apple Developer 인증서 사용.
