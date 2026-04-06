@@ -4,7 +4,8 @@
       "Bash(make install:*)",
       "WebSearch",
       "Bash(make update:*)",
-      "Bash(swift build:*)"
+      "Bash(swift build:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

@@ -6,6 +6,31 @@ import SwiftUI
 /// 날짜, 토큰 수, 색상 등 표시용 변환을 담당한다.
 enum DisplayFormatters {
 
+    // MARK: - 상수
+
+    private static let seoulTimeZone = TimeZone(identifier: "Asia/Seoul")!
+
+    /// 리셋 시각의 시간(hour) 표시용 포맷터.
+    ///
+    /// DateFormatter 생성 비용이 높으므로 static으로 재사용한다.
+    /// resetLabel이 1초 주기 뷰 갱신에서 호출될 수 있어 매번 생성하면 비효율적이다.
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = seoulTimeZone
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "ha"
+        return formatter
+    }()
+
+    /// 리셋 시각의 날짜(월/일) 표시용 포맷터.
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeZone = seoulTimeZone
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "MMM d"
+        return formatter
+    }()
+
     // MARK: - 색상
 
     /// 사용률에 따른 프로그레스바 색상.
@@ -28,29 +53,18 @@ enum DisplayFormatters {
         guard let resetAt = window.resetAt else { return nil }
         guard let seconds = window.secondsUntilReset, seconds > 0 else { return "Reset" }
 
-        let seoul = TimeZone(identifier: "Asia/Seoul")!
-        let now = Date()
-
-        let formatter = DateFormatter()
-        formatter.timeZone = seoul
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-
         // Seoul 타임존 기준으로 오늘인지 판별
         var seoulCalendar = Calendar.current
-        seoulCalendar.timeZone = seoul
+        seoulCalendar.timeZone = seoulTimeZone
+        let now = Date()
         let isToday = seoulCalendar.isDate(resetAt, inSameDayAs: now)
         let isTomorrow = seoulCalendar.isDateInTomorrow(resetAt)
 
-        formatter.dateFormat = "ha"
-        let timeStr = formatter.string(from: resetAt).lowercased()
+        let timeStr = timeFormatter.string(from: resetAt).lowercased()
 
         if isToday || isTomorrow {
             return "Resets \(timeStr) (Asia/Seoul)"
         } else {
-            let dayFormatter = DateFormatter()
-            dayFormatter.timeZone = seoul
-            dayFormatter.locale = Locale(identifier: "en_US_POSIX")
-            dayFormatter.dateFormat = "MMM d"
             let dayStr = dayFormatter.string(from: resetAt)
             return "Resets \(dayStr) at \(timeStr) (Asia/Seoul)"
         }

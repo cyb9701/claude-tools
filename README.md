@@ -1,44 +1,22 @@
-# ClaudeUsageBar
+# claude-tools
 
-macOS 메뉴바에서 **Claude Pro / Max 사용량**을 실시간으로 확인하는 네이티브 앱.
+🌐 **English** | [한국어](README.ko.md)
 
-- **별도 로그인 불필요** — Claude Code CLI의 Keychain 토큰을 자동으로 사용
-- **공식 OAuth API** — 화면 스크래핑 없이 공식 인증 경로로만 데이터 취득
-- **경량 네이티브** — SwiftUI + URLSession, Electron/WebView 불필요
+> Community tools to supercharge your Claude AI productivity.
 
-> **전제 조건**: Claude Code CLI(`claude` 명령)가 설치되어 있고 로그인된 상태여야 합니다.
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-14%2B-blue?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 
----
+> **This is a community project, not an official Anthropic product.**
 
-## 설치
+Each tool is independently installable and works with Claude Code CLI or the Claude API.
 
-```bash
-git clone https://github.com/cyb9701/ClaudeUsageBar.git
-cd ClaudeUsageBar
-make install
-```
+## Tools
 
-빌드 후 `~/Applications/ClaudeUsageBar.app`이 자동 생성되고 즉시 실행됩니다.
+| Tool | Description |
+|------|-------------|
+| [**ClaudeUsageBar**](./claude-usage-bar) | Native macOS menu bar app to monitor Claude Pro/Max usage in real time. No separate login required — reuses Claude Code CLI's Keychain token automatically. |
 
-> **Keychain 팝업이 반복될 경우**: `make setup-keychain`을 한 번 실행하세요.  
-> `"Claude Code-credentials"` 항목에 TeamID ACL을 등록하여 이후 팝업을 영구 차단합니다.  
-> 실행 시 macOS 로그인 비밀번호를 한 번 입력해야 합니다.
+## License
 
-## 업데이트
-
-```bash
-git pull
-make update
-```
-
-## 삭제
-
-```bash
-make uninstall
-```
-
----
-
-## 라이선스
-
-MIT License
+MIT

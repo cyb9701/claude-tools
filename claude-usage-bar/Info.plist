@@ -7,9 +7,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.claudeusagebar.app</string>
     <key>CFBundleName</key>
-    <string>ClaudeUsageBar</string>
+    <string>Claude UsageBar</string>
     <key>CFBundleDisplayName</key>
-    <string>ClaudeUsageBar</string>
+    <string>Claude UsageBar</string>
     <key>CFBundleVersion</key>
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>
@@ -27,8 +27,8 @@
     <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
-    <!-- Keychain 접근을 위한 보안 예외 -->
+    <!-- Apple Events(AppleScript) 사용 시 표시되는 권한 요청 메시지 -->
     <key>NSAppleEventsUsageDescription</key>
-    <string>Claude 사용량 데이터를 읽기 위해 Keychain에 접근합니다.</string>
+    <string>Claude UsageBar가 시스템 서비스에 접근하려면 권한이 필요합니다.</string>
 </dict>
 </plist>

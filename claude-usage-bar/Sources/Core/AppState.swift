@@ -22,6 +22,9 @@ protocol MetricsPolling: Sendable {
 ///
 /// @Observable을 사용하여 SwiftUI 뷰와 자동으로 동기화된다.
 /// 5분 주기로 Pro 사용량을 갱신하고, 1분 주기로 OTel 메트릭을 갱신한다.
+/// @MainActor로 격리하여 Swift 6 strict concurrency 안전성을 보장하고,
+/// 내부의 MainActor.run 호출을 제거하여 코드를 단순화한다.
+@MainActor
 @Observable
 final class AppState {
 
@@ -80,17 +83,17 @@ final class AppState {
         self.usageFetcher = usageFetcher
         self.metricsPoller = metricsPoller
         startTimers()
-        Task { @MainActor in
+        Task {
             await performStartupRefreshWithBackoff()
         }
     }
 
-    deinit {
-        refreshTimer?.invalidate()
-        otelTimer?.invalidate()
-    }
-
     // MARK: - 상수
+
+    /// Pro 사용량 갱신 주기 (초).
+    private static let usageRefreshInterval: TimeInterval = 300
+    /// OTel 메트릭 갱신 주기 (초).
+    private static let otelRefreshInterval: TimeInterval = 60
 
     /// 부팅 후 재시도 백오프 간격.
     ///
@@ -122,31 +125,25 @@ final class AppState {
 
     /// 사용량 데이터 수동 갱신.
     func refresh() async {
-        await MainActor.run { isLoading = true }
+        isLoading = true
 
         do {
             let data = try await usageFetcher.fetchUsage()
-            await MainActor.run {
-                fiveHourUsage = data.fiveHour
-                sevenDayUsage = data.sevenDay
-                sevenDaySonnetUsage = data.sevenDaySonnet
-                lastUpdated = data.fetchedAt
-                errorMessage = nil
-                isNetworkError = false
-                isLoading = false
-            }
+            fiveHourUsage = data.fiveHour
+            sevenDayUsage = data.sevenDay
+            sevenDaySonnetUsage = data.sevenDaySonnet
+            lastUpdated = data.fetchedAt
+            errorMessage = nil
+            isNetworkError = false
+            isLoading = false
         } catch {
-            let networkError: Bool
             if case ClaudeUsageError.tokenRefreshNetworkError = error {
-                networkError = true
+                isNetworkError = true
             } else {
-                networkError = false
+                isNetworkError = false
             }
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-                isNetworkError = networkError
-                isLoading = false
-            }
+            errorMessage = error.localizedDescription
+            isLoading = false
         }
     }
 
@@ -154,20 +151,18 @@ final class AppState {
 
     private func pollOTel() async {
         let metrics = await metricsPoller.poll()
-        await MainActor.run {
-            codeMetrics = metrics
-            isOTelAvailable = metrics != nil
-        }
+        codeMetrics = metrics
+        isOTelAvailable = metrics != nil
     }
 
     private func startTimers() {
         // Pro 사용량: 5분 주기
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 300, repeats: true) { [weak self] _ in
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: Self.usageRefreshInterval, repeats: true) { [weak self] _ in
             Task { await self?.refresh() }
         }
 
         // OTel 메트릭: 1분 주기
-        otelTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+        otelTimer = Timer.scheduledTimer(withTimeInterval: Self.otelRefreshInterval, repeats: true) { [weak self] _ in
             Task { await self?.pollOTel() }
         }
     }
@@ -179,16 +174,11 @@ extension AppState {
 
     /// 메뉴바 아이콘 색상 (5시간 윈도우 사용률 기반).
     ///
-    /// 50% 미만: 여유 (green), 50~80%: 주의 (yellow), 80% 이상: 경고 (red).
-    /// 사용자가 rate limit 도달 전에 사용량을 인지할 수 있도록
-    /// 80%부터 빨간색으로 전환한다.
+    /// DisplayFormatters.progressColor에 위임하여 색상 로직을 한 곳에서 관리한다.
+    /// 데이터 없음 시 gray를 반환한다.
     var statusColor: Color {
         guard let ratio = fiveHourUsage?.ratio else { return .gray }
-        switch ratio {
-        case ..<0.5: return .green
-        case ..<0.8: return .yellow
-        default: return .red
-        }
+        return DisplayFormatters.progressColor(for: ratio)
     }
 
     /// 메뉴바에 표시할 짧은 사용률 문자열.

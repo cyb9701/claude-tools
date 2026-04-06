@@ -9,6 +9,9 @@ import Foundation
 /// 실제 응답 구조:
 /// { "five_hour": { "utilization": 50.0, "resets_at": "..." },
 ///   "seven_day": { "utilization": 45.0, "resets_at": "..." }, ... }
+///
+/// 모든 프로퍼티가 let(불변)이므로 @unchecked Sendable이 안전하다.
+/// tokenManager는 actor, session은 내부적으로 스레드 안전하다.
 final class OAuthUsageFetcher: UsageFetching, @unchecked Sendable {
 
     private let tokenManager = OAuthTokenManager.shared

@@ -21,7 +21,16 @@ actor OAuthTokenManager {
 
     static let shared = OAuthTokenManager()
 
-    // 메모리 캐시: 만료 60초 전까지 유효
+    /// 토큰 만료 전 선제 갱신 여유 시간 (초).
+    ///
+    /// 만료 직전에 API 호출이 실패하는 것을 방지하기 위해
+    /// 만료 시각보다 이 값만큼 앞서서 갱신을 시도한다.
+    private static let tokenRefreshMarginSeconds: TimeInterval = 60
+
+    /// OAuth 토큰 갱신 엔드포인트.
+    private static let tokenRefreshURL = URL(string: "https://platform.claude.com/v1/oauth/token")!
+
+    // 메모리 캐시: 만료 전 tokenRefreshMarginSeconds까지 유효
     private var cachedToken: String?
     private var tokenExpiresAt: Date?
     private var cachedRefreshToken: String?
@@ -36,10 +45,13 @@ actor OAuthTokenManager {
     /// 캐시 → refresh token으로 HTTP 갱신 → Keychain 순서로 시도한다.
     func getValidToken() async throws -> String {
         // 1단계: 캐시된 토큰이 아직 유효하면 즉시 반환
-        if let cached = cachedToken,
-           let expiresAt = tokenExpiresAt,
-           expiresAt.timeIntervalSinceNow > 60 {
-            return cached
+        // expiresAt이 nil이면 만료 시점을 알 수 없으므로 캐시된 토큰을 그대로 사용한다.
+        // (단순 토큰 문자열 파싱 경로에서 expiresAt: nil로 반환될 수 있음)
+        if let cached = cachedToken {
+            guard let expiresAt = tokenExpiresAt else { return cached }
+            if expiresAt.timeIntervalSinceNow > Self.tokenRefreshMarginSeconds {
+                return cached
+            }
         }
 
         // 2단계: 캐시된 refresh token으로 HTTP 갱신 시도 (Keychain 접근 없음)
@@ -60,7 +72,7 @@ actor OAuthTokenManager {
 
         // 토큰 만료 여부 확인 후 갱신
         if let expiresAt = credentials.expiresAt,
-           expiresAt.timeIntervalSinceNow < 60,
+           expiresAt.timeIntervalSinceNow < Self.tokenRefreshMarginSeconds,
            !credentials.refreshToken.isEmpty {
             return try await refreshAccessToken(using: credentials.refreshToken)
         }
@@ -146,7 +158,7 @@ actor OAuthTokenManager {
 
     private func refreshAccessToken(using refreshToken: String) async throws -> String {
         var request = URLRequest(
-            url: URL(string: "https://platform.claude.com/v1/oauth/token")!,
+            url: Self.tokenRefreshURL,
             timeoutInterval: 30
         )
         request.httpMethod = "POST"
@@ -195,10 +207,23 @@ private struct CredentialsWrapper: Decodable {
 }
 
 /// OAuth 자격증명. expiresAt은 밀리초 단위 Unix 타임스탬프.
+///
+/// OAuthTokenManager 내부에서만 사용되는 자격증명 모델.
+/// 모듈 내부 접근으로 제한하여 API 표면을 최소화한다.
 struct OAuthCredentials: Decodable {
     let accessToken: String
     let refreshToken: String
     let expiresAt: Date?
+
+    /// ISO 8601 문자열 파싱용 포맷터.
+    ///
+    /// ISO8601DateFormatter는 생성 비용이 높으므로 static으로 재사용한다.
+    /// UsageWindow의 패턴과 동일하게 통일한다.
+    private static let isoFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 
     init(accessToken: String, refreshToken: String, expiresAt: Date?) {
         self.accessToken = accessToken
@@ -227,7 +252,7 @@ struct OAuthCredentials: Decodable {
             let seconds = ms > millisecondsThreshold ? ms / 1000 : ms
             expiresAt = Date(timeIntervalSince1970: seconds)
         } else if let isoStr = try? c.decode(String.self, forKey: .expiresAt) {
-            expiresAt = ISO8601DateFormatter().date(from: isoStr)
+            expiresAt = Self.isoFormatter.date(from: isoStr)
         } else {
             expiresAt = nil
         }
@@ -236,8 +261,9 @@ struct OAuthCredentials: Decodable {
 
 /// 토큰 갱신 API 응답.
 ///
-/// OAuth 2.0 RFC 6749 §6에 따라 서버는 새 refresh token을 반환할 수 있다(토큰 로테이션).
+/// OAuth 2.0 RFC 6749 ss6에 따라 서버는 새 refresh token을 반환할 수 있다(토큰 로테이션).
 /// refreshToken이 nil이면 기존 캐시된 refresh token을 계속 사용한다.
+/// OAuthTokenManager 내부에서만 사용되는 응답 모델.
 struct TokenRefreshResponse: Decodable {
     let accessToken: String
     let expiresIn: Int?

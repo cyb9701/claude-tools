@@ -208,41 +208,18 @@ struct MenuBarView: View {
 // MARK: - 메뉴바 라벨 뷰
 
 /// 메뉴바에 상시 표시되는 아이콘 + 사용률.
-///
-/// 커스텀 상태바 아이콘(icon_status_bar.png)을 사용하며,
-/// 리소스 로드 실패 시 SF Symbol 폴백으로 동작한다.
 struct MenuBarLabelView: View {
 
     let appState: AppState
 
     var body: some View {
         HStack(alignment: .center, spacing: 3) {
-            statusBarIcon
+            Image(systemName: "chart.bar.fill")
+                .font(.system(size: 12, weight: .medium))
             Text(appState.shortStatusText)
                 .font(.system(size: 12, weight: .medium).monospacedDigit())
                 // 메뉴바 텍스트 수직 정렬 기준을 명시적으로 설정
                 .baselineOffset(0)
-        }
-    }
-
-    /// 번들 리소스에서 상태바 아이콘을 로드하여 표시한다.
-    ///
-    /// macOS 메뉴바 권장 아이콘 크기는 16×16pt.
-    /// .renderingMode(.template)으로 다크/라이트 모드 자동 대응.
-    @ViewBuilder
-    private var statusBarIcon: some View {
-        if let url = Bundle.module.url(forResource: "icon_status_bar", withExtension: "png"),
-           let nsImage = NSImage(contentsOf: url) {
-            Image(nsImage: nsImage)
-                .resizable()
-                .renderingMode(.template)
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 16, height: 16)
-        } else {
-            // 리소스 로드 실패 시 폴백
-            Image(systemName: "chart.bar.fill")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(appState.statusColor)
         }
     }
 }

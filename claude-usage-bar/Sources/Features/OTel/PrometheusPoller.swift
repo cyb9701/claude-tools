@@ -5,6 +5,9 @@ import Foundation
 /// Claude Code에 CLAUDE_CODE_ENABLE_TELEMETRY=1, OTEL_METRICS_EXPORTER=prometheus를
 /// 설정하면 localhost:9464/metrics 에 HTTP 서버가 자동 기동된다.
 /// 이 클래스는 해당 엔드포인트를 폴링하여 Claude Code CLI 사용 메트릭을 수집한다.
+///
+/// 모든 프로퍼티가 let(불변)이므로 @unchecked Sendable이 안전하다.
+/// URLSession은 내부적으로 스레드 안전한 구현이므로 동시 접근에 문제없다.
 final class PrometheusPoller: MetricsPolling, @unchecked Sendable {
 
     private let metricsURL = URL(string: "http://localhost:9464/metrics")!
@@ -86,15 +89,21 @@ final class PrometheusPoller: MetricsPolling, @unchecked Sendable {
     /// Prometheus 메트릭 줄에서 숫자 값 추출.
     ///
     /// 형식: "metric_name{labels} value [timestamp]"
-    /// 타임스탬프는 선택적이므로, 라벨(중괄호 또는 메트릭명) 뒤 첫 번째 숫자 토큰이
-    /// 항상 값이다. 타임스탬프가 존재해도 값을 정확히 추출한다.
+    /// 라벨 값에 공백이 포함될 수 있으므로(Prometheus 스펙 허용),
+    /// 중괄호 라벨 부분을 먼저 제거한 후 공백으로 분리하여 값을 추출한다.
     private func extractValue(from line: String) -> Double {
-        let parts = line.components(separatedBy: " ").filter { !$0.isEmpty }
+        // 중괄호 라벨 부분을 제거하여 "metric_name value [timestamp]" 형태로 정규화
+        let stripped: String
+        if let braceStart = line.firstIndex(of: "{"),
+           let braceEnd = line.firstIndex(of: "}") {
+            stripped = String(line[line.startIndex..<braceStart])
+                + String(line[line.index(after: braceEnd)...])
+        } else {
+            stripped = line
+        }
+        let parts = stripped.components(separatedBy: " ").filter { !$0.isEmpty }
         // 최소 "metric_name value" 2개 토큰 필요
         guard parts.count >= 2 else { return 0 }
-
-        // 첫 번째 토큰은 메트릭명(라벨 포함), 두 번째가 값
-        guard let value = Double(parts[1]) else { return 0 }
-        return value
+        return Double(parts[1]) ?? 0
     }
 }
