@@ -70,6 +70,7 @@ struct EditorView: View {
                     copyTask?.cancel()
                     copyTask = Task {
                         try? await Task.sleep(for: .seconds(1))
+                        guard !Task.isCancelled else { return }
                         appState.copySuccess = false
                     }
                 } label: {
