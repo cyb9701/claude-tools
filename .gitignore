@@ -153,3 +153,9 @@ Makefile.local
 
 # Firebase 디버그 로그 (이메일 등 민감 정보 포함)
 firebase-debug.log
+
+# Git worktrees (로컬 격리 작업공간)
+.worktrees/
+
+# Brainstorming 시각화 세션 파일
+.superpowers/
