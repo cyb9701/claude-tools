@@ -84,6 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupKeyboardShortcut()
         setupCallbacks()
         setupKeyEventMonitor()
+        requestLaunchAtLoginIfFirstLaunch()
     }
 
     // MARK: - 설정
@@ -312,6 +313,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         panel.setFrameOrigin(NSPoint(x: x, y: y))
+    }
+
+    /// 최초 실행 시 로그인 시 자동 실행 여부를 사용자에게 묻는다.
+    ///
+    /// UserDefaults의 "hasRequestedLaunchAtLogin" 플래그로 첫 실행 여부를 판단하여
+    /// 한 번만 요청한다. 이후에는 우클릭 설정 메뉴에서 변경할 수 있다.
+    private func requestLaunchAtLoginIfFirstLaunch() {
+        let key = "hasRequestedLaunchAtLogin"
+        guard !UserDefaults.standard.bool(forKey: key) else { return }
+
+        // 다시 묻지 않도록 먼저 플래그를 저장한다.
+        UserDefaults.standard.set(true, forKey: key)
+
+        NSApp.activate(ignoringOtherApps: true)
+
+        let alert = NSAlert()
+        alert.messageText = "로그인 시 자동 실행"
+        alert.informativeText = "컴퓨터가 시작될 때 Claude PromptPad를 자동으로 실행할까요?\n우클릭 메뉴에서 언제든지 변경할 수 있습니다."
+        alert.addButton(withTitle: "자동 실행 켜기")
+        alert.addButton(withTitle: "나중에")
+        alert.alertStyle = .informational
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            appState.launchAtLogin = true
+        }
     }
 
     /// 설정 메뉴의 "로그인 시 자동 실행" 체크 상태를 실제 등록 상태와 동기화한다.
